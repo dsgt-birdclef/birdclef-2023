@@ -1,0 +1,13 @@
+# https://github.com/google-research/sound-separation/tree/master/models/bird_mixit
+FROM tensorflow/tensorflow:latest-gpu
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg
+
+# weights need to be downloaded beforehand
+# gcloud storage cp -r gs://gresearch/sound_separation/bird_mixit_model_checkpoints data/raw/sound_separation
+ADD vendor/sound-separation /app
+ADD data/raw/sound_separation/bird_mixit_model_checkpoints /app/checkpoints
+ADD scripts /app/scripts
+
+WORKDIR /app

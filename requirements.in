@@ -1,0 +1,18 @@
+-f https://download.pytorch.org/whl/cu116/torch_stable.html
+-e file:./
+torch
+torchvision
+torchaudio
+
+# notebooking
+jupyterlab
+nb_black
+pyspark
+pywin32; sys_platform == 'win32'
+pywinpty; sys_platform == 'win32'
+
+# precommit
+pre-commit
+
+# testing
+pytest

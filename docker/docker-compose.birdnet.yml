@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  birdnet:
+    build:
+      context: ../vendor/BirdNET-Analyzer
+      dockerfile: Dockerfile
+    image: us-central1-docker.pkg.dev/birdclef-eda-f22/birdclef-eda-f22/birdnet:latest
