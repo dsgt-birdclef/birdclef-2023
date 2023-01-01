@@ -4,10 +4,21 @@ See [notes from the birdclef-eda-f22](https://github.com/dsgt-birdclef/birdclef-
 
 ### Data
 
+Grab the entirety of the data from last year's bucket.
+
+```bash
+suffix=raw/birdclef-2022
+mkdir -p data/${suffix}
+gcloud storage cp -r gs://birdclef-2022/${suffix} data/${suffix}
+```
+
+If you just want a subset of the data, consider the following:
+
 ```bash
 suffix=raw/birdclef-2022/train_audio
+species=afrsil1
 mkdir -p data/${suffix}
-gcloud storage cp -r gs://birdclef-2022/${suffix}/afrsil1 data/${suffix}
+gcloud storage cp -r gs://birdclef-2022/${suffix}/${species} data/${suffix}
 ```
 
 ### Configuring docker
@@ -31,7 +42,7 @@ our metadata. The following script will generate a parquet file that we can use
 to find this information as a preprocessing step.
 
 ```bash
-python scripts/train_durations.py data/raw/birdclef-2022 data/processed/birdclef-2023/train_durations.parquet
+python workflows/train_durations.py
 gsutil -m cp data/processed/train_durations.parquet gs://birdclef-2023/data/processed/birdclef-2023/train_durations.parquet
 ```
 
@@ -39,17 +50,7 @@ gsutil -m cp data/processed/train_durations.parquet gs://birdclef-2023/data/proc
 
 #### Building
 
-We build the [old BirdNET model](https://github.com/kahst/BirdNET) which is
-built on top of theano. This model is deprecated, so this is only of academic
-interest (e.g. how does this perform relative to the modern model).
-
-```bash
-docker-compose -f docker/docker-compose.birdnet-old.yml build
-docker-compose -f docker/docker-compose.birdnet-old.yml push
-```
-
-The image for the [BirdNET analyzer
-model](https://github.com/kahst/BirdNET-Analyzer) is built in a similar way.
+We build the [BirdNET analyzer model](https://github.com/kahst/BirdNET-Analyzer), which relies on tensorflow.
 
 ```bash
 docker-compose -f docker/docker-compose.birdnet.yml build
@@ -65,7 +66,7 @@ docker run --rm \
     -u $(id -u):$(id -g) \
     -v ${PWD}/data:/mnt/data \
     -e NUMBA_CACHE_DIR=/tmp \
-    -it us-central1-docker.pkg.dev/birdclef-eda-f22/birdclef-eda-f22/birdnet:latest \
+    -it us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/birdnet:latest \
     analyze.py \
         --i /mnt/data/raw/birdclef-2022/train_audio/afrsil1 \
         --o /mnt/data/processed/birdnet/analysis/afrsil1 \
@@ -119,6 +120,7 @@ See [2022-10-30-birdnet-analyze-v1](https://github.com/dsgt-birdclef/birdclef-ed
 Building the image is requires a bit more setup. We need to download the model checkpoints [as per the repository instructions](https://github.com/google-research/sound-separation/tree/master/models/bird_mixit):
 
 ```bash
+mkdir -p data/raw/sound_separation
 gcloud storage cp -r gs://gresearch/sound_separation/bird_mixit_model_checkpoints data/raw/sound_separation
 ```
 

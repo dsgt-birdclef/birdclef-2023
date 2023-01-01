@@ -4,7 +4,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.bird-mixit
-    image: us-central1-docker.pkg.dev/birdclef-eda-f22/birdclef-eda-f22/bird-mixit:latest
+    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit:latest
     volumes: &volumes
       - ../data/raw/sound_separation/bird_mixit_model_checkpoints:/app/checkpoints
       - ../scripts:/app/scripts
@@ -13,7 +13,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.bird-mixit-gpu
-    image: us-central1-docker.pkg.dev/birdclef-eda-f22/birdclef-eda-f22/bird-mixit-gpu:latest
+    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit-gpu:latest
     volumes: *volumes
     deploy:
       resources:
