@@ -69,7 +69,7 @@ docker run --rm \
     -it us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/birdnet:latest \
     analyze.py \
         --i /mnt/data/raw/birdclef-2022/train_audio/afrsil1 \
-        --o /mnt/data/processed/birdnet/analysis/afrsil1 \
+        --o /mnt/data/processed/birdclef-2022/birdnet/analysis/afrsil1 \
         --threads 4 \
         --rtype csv
 ```
@@ -78,16 +78,14 @@ Note the `NUMBA_CACHE_DIR` to avoid librosa/numba cache issues (see [this stacko
 
 See [2022-10-23-birdnet-exploration](https://github.com/dsgt-birdclef/birdclef-eda-f22/tree/main/users/acmiyaguchi/notebooks/2022-10-23-birdnet-exploration.ipynb) for an interactive introduction into using the docker images.
 
-We put together a script to generate analysis of all of the training data, given
-that training data from the kaggle competition exists under
-`data/raw/birdclef-2022/train_audio`.
+We put together a script to generate analysis of all of the training data, given that training data from the kaggle competition exists under `data/raw/birdclef-2022/train_audio`.
 
 ```bash
 ./scripts/birdnet_analyze_batch.sh
 python ./scripts/birdnet_analyze_batch_concat.py \
-    data/processed/birdnet/analysis \
+    data/processed/birdclef-2022/birdnet/analysis \
     data/raw/birdclef-2022 \
-    data/processed/birdnet/birdnet_analyze_v1.parquet
+    data/processed/birdclef-2022/birdnet/birdnet_analyze_v1.parquet
 ```
 
 It turns out to be much simpler to let the docker container run as root, and
@@ -95,21 +93,6 @@ then chown the files afterwards. There are error logs that get written to the
 code directory within the container, and permission errors can cause some
 headaches.
 
-We upload this into our storage bucket:
-
-```bash
-gsutil -m rsync -r data/processed/birdnet/analysis/ \
-    gs://birdclef-eda-f22/data/processed/birdnet/analysis/
-
-gsutil -m cp data/processed/birdnet/birdnet_analyze_v1.parquet \
-    gs://birdclef-eda-f22/data/processed/birdnet/birdnet_analyze_v1.parquet
-
-# metadata and taxonomy too
-gsutil -m cp data/raw/birdclef-2022/train_metadata.csv \
-    gs://birdclef-eda-f22/data/raw/birdclef-2022/train_metadata.csv
-gsutil -m cp data/raw/birdclef-2022/eBird_Taxonomy_v2021.csv \
-    gs://birdclef-eda-f22/data/raw/birdclef-2022/eBird_Taxonomy_v2021.csv
-```
 
 See [2022-10-30-birdnet-analyze-v1](https://github.com/dsgt-birdclef/birdclef-eda-f22/tree/main/users/acmiyaguchi/notebooks/2022-10-30-birdnet-analyze-v1.ipynb) for a notebook that shows how to use the dataset.
 
