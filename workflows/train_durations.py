@@ -19,7 +19,7 @@ class TrainDurations(luigi.Task):
 
     birdclef_root_path = luigi.Parameter()
     output_path = luigi.Parameter()
-    parallelism = luigi.IntParameter(default=os.cpu_count())
+    parallelism = luigi.IntParameter(default=os.cpu_count() // 2)
     capture_output = True
 
     def requires(self):
