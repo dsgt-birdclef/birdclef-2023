@@ -6,3 +6,5 @@ data/
 .DS_Store
 venv/
 .vscode/
+*.egg-info/
+dask-worker-space/
