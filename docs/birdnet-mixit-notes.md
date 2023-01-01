@@ -31,8 +31,8 @@ our metadata. The following script will generate a parquet file that we can use
 to find this information as a preprocessing step.
 
 ```bash
-python scripts/train_durations.py data/raw/birdclef-2022 data/processed/train_durations.parquet
-gsutil -m cp data/processed/train_durations.parquet gs://birdclef-eda-f22/data/processed/train_durations.parquet
+python scripts/train_durations.py data/raw/birdclef-2022 data/processed/birdclef-2023/train_durations.parquet
+gsutil -m cp data/processed/train_durations.parquet gs://birdclef-2023/data/processed/birdclef-2023/train_durations.parquet
 ```
 
 ### BirdNET
