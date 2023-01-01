@@ -74,6 +74,8 @@ defusedxml==0.7.1
     # via nbconvert
 distlib==0.3.6
     # via virtualenv
+docutils==0.19
+    # via python-daemon
 entrypoints==0.4
     # via jupyter-client
 exceptiongroup==1.1.0
@@ -190,6 +192,10 @@ lightning-utilities==0.5.0
     # via pytorch-lightning
 llvmlite==0.39.1
     # via numba
+lockfile==0.12.2
+    # via python-daemon
+luigi==3.1.1
+    # via -r requirements.in
 markupsafe==2.1.1
     # via
     #   jinja2
@@ -342,9 +348,12 @@ pyspark==3.3.1
     #   birdclef-2023
 pytest==7.2.0
     # via -r requirements.in
+python-daemon==2.3.2
+    # via luigi
 python-dateutil==2.8.2
     # via
     #   jupyter-client
+    #   luigi
     #   matplotlib
     #   pandas
 pytorch-lightning==1.8.6
@@ -397,6 +406,8 @@ soundfile==0.11.0
     #   librosa
 soupsieve==2.3.2.post1
     # via beautifulsoup4
+tenacity==8.1.0
+    # via luigi
 tensorboardx==2.5.1
     # via pytorch-lightning
 terminado==0.17.1
@@ -445,6 +456,7 @@ tornado==6.2
     #   jupyter-client
     #   jupyter-server
     #   jupyterlab
+    #   luigi
     #   nbclassic
     #   notebook
     #   terminado
