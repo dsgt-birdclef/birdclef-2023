@@ -1,6 +1,6 @@
-[submodule "vendor/BirdNET"]
-	path = vendor/BirdNET
-	url = git@github.com:kahst/BirdNET.git
 [submodule "vendor/sound-separation"]
 	path = vendor/sound-separation
 	url = git@github.com:google-research/sound-separation.git
+[submodule "vendor/BirdNET-Analyzer"]
+	path = vendor/BirdNET-Analyzer
+	url = git@github.com:kahst/BirdNET-Analyzer.git
