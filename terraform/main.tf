@@ -27,6 +27,19 @@ resource "google_artifact_registry_repository" "default" {
   depends_on    = [google_project_service.service["artifactregistry"]]
 }
 
+// get the compute engine default service account
+data "google_compute_default_service_account" "default" {
+  project = local.project_id
+}
+
+// grant the compute engine default service account push access to the artifact registry
+resource "google_artifact_registry_repository_iam_member" "default" {
+  repository = google_artifact_registry_repository.default.name
+  location   = google_artifact_registry_repository.default.location
+  role       = "roles/artifactregistry.repoAdmin"
+  member     = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
 resource "google_storage_bucket" "default" {
   name     = local.project_id
   location = "US"
