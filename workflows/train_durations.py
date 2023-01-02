@@ -1,11 +1,11 @@
-import luigi
+import os
+from multiprocessing import Pool
+from pathlib import Path
 
 import librosa
+import luigi
 import pandas as pd
 from tqdm import tqdm
-import os
-from pathlib import Path
-from multiprocessing import Pool
 
 
 def read_path(path: Path) -> dict:
