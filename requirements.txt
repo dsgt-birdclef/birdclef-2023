@@ -113,6 +113,7 @@ importlib-metadata==5.2.0
     #   numba
     #   pluggy
     #   pre-commit
+    #   pynndescent
     #   pytest
     #   virtualenv
 importlib-resources==5.10.2
@@ -145,6 +146,7 @@ jinja2==3.1.2
 joblib==1.2.0
     # via
     #   librosa
+    #   pynndescent
     #   scikit-learn
 json5==0.9.10
     # via jupyterlab-server
@@ -193,7 +195,9 @@ librosa==0.9.2
 lightning-utilities==0.5.0
     # via pytorch-lightning
 llvmlite==0.39.1
-    # via numba
+    # via
+    #   numba
+    #   pynndescent
 lockfile==0.12.2
     # via python-daemon
 luigi==3.1.1
@@ -253,7 +257,9 @@ notebook-shim==0.2.2
 numba==0.56.4
     # via
     #   librosa
+    #   pynndescent
     #   resampy
+    #   umap-learn
 numpy==1.21.6
     # via
     #   audiomentations
@@ -270,6 +276,7 @@ numpy==1.21.6
     #   tensorboardx
     #   torchmetrics
     #   torchvision
+    #   umap-learn
 packaging==22.0
     # via
     #   docker
@@ -341,14 +348,16 @@ pygments==2.13.0
     # via
     #   ipython
     #   nbconvert
+pynndescent==0.5.8
+    # via
+    #   birdclef-2023
+    #   umap-learn
 pyparsing==3.0.9
     # via matplotlib
 pyrsistent==0.19.3
     # via jsonschema
 pyspark==3.3.1
-    # via
-    #   -r requirements.in
-    #   birdclef-2023
+    # via birdclef-2023
 pytest==7.2.0
     # via -r requirements.in
 python-daemon==2.3.2
@@ -386,13 +395,19 @@ requests==2.28.1
 resampy==0.4.2
     # via librosa
 scikit-learn==1.0.2
-    # via librosa
+    # via
+    #   birdclef-2023
+    #   librosa
+    #   pynndescent
+    #   umap-learn
 scipy==1.7.3
     # via
     #   audiomentations
     #   librosa
     #   nnaudio
+    #   pynndescent
     #   scikit-learn
+    #   umap-learn
 send2trash==1.8.0
     # via
     #   jupyter-server
@@ -468,6 +483,7 @@ tqdm==4.64.1
     # via
     #   birdclef-2023
     #   pytorch-lightning
+    #   umap-learn
 traitlets==5.8.0
     # via
     #   ipykernel
@@ -500,6 +516,8 @@ typing-extensions==4.4.0
     #   torchmetrics
     #   torchvision
     #   yarl
+umap-learn==0.5.3
+    # via birdclef-2023
 urllib3==1.26.13
     # via
     #   docker
