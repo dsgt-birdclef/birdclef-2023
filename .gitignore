@@ -8,3 +8,4 @@ venv/
 .vscode/
 *.egg-info/
 dask-worker-space/
+__pycache__/

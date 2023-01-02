@@ -138,7 +138,7 @@ class BirdNetAnalyzeConcatTask(luigi.Task):
         # ensure the output directory exists
         output_path = Path(self.output().path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        df.to_parquet(output_path)
+        df.to_parquet(output_path, index=False)
 
 
 class BirdNetTask(luigi.WrapperTask):
@@ -159,7 +159,7 @@ class BirdNetTask(luigi.WrapperTask):
             birdclef_root_path=self.birdclef_root_path,
             taxonomy_path=f"{self.birdclef_root_path}/eBird_Taxonomy_v2021.csv",
             input_path=f"{self.intermediate_path}/birdnet/analysis",
-            output_path=f"{self.output_path}/birdnet",
+            output_path=self.output_path,
             parallelism=self.parallelism,
         )
 
