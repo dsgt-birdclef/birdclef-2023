@@ -6,6 +6,7 @@ torchaudio
 
 # workflow management
 luigi
+docker
 
 # notebooking
 jupyterlab
