@@ -8,3 +8,4 @@ venv/
 .vscode/
 *.egg-info/
 dask-worker-space/
+!data/raw/sound_separation/bird_mixit_model_checkpoints
