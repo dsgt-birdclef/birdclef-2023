@@ -6,7 +6,9 @@ from pathlib import Path
 import luigi
 import numpy as np
 import pandas as pd
+from luigi.parameter import ParameterVisibility
 from pynndescent import NNDescent
+from pyspark.sql import Window
 from pyspark.sql import functions as F
 from tqdm import tqdm
 
@@ -17,8 +19,10 @@ class BirdNetAnalyzeConcatTask(luigi.Task):
     taxonomy_path = luigi.Parameter()
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
-    parallelism = luigi.IntParameter(default=os.cpu_count())
-    dynamic_requires = luigi.Parameter(default=[])
+    parallelism = luigi.IntParameter(default=os.cpu_count(), significant=False)
+    dynamic_requires = luigi.Parameter(
+        default=[], visibility=ParameterVisibility.HIDDEN
+    )
 
     def requires(self):
         return self.dynamic_requires
@@ -79,9 +83,11 @@ class BirdNetEmbeddingsConcatTask(luigi.Task):
 
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
-    parallelism = luigi.IntParameter(default=os.cpu_count())
-    partitions = luigi.IntParameter(default=8)
-    dynamic_requires = luigi.Parameter(default=[])
+    parallelism = luigi.IntParameter(default=os.cpu_count(), significant=False)
+    partitions = luigi.IntParameter(default=8, significant=False)
+    dynamic_requires = luigi.Parameter(
+        default=[], visibility=ParameterVisibility.HIDDEN
+    )
 
     def requires(self):
         return self.dynamic_requires
@@ -133,10 +139,12 @@ class BirdNetEmbeddingsWithNeighbors(luigi.Task):
     train_n_neighbors = luigi.IntParameter(default=30)
     query_n_neighbors = luigi.IntParameter(default=50)
 
-    partitions = luigi.IntParameter(default=16)
-    parallelism = luigi.IntParameter(default=os.cpu_count())
+    partitions = luigi.IntParameter(default=16, significant=False)
+    parallelism = luigi.IntParameter(default=os.cpu_count(), significant=False)
 
-    dynamic_requires = luigi.Parameter(default=[])
+    dynamic_requires = luigi.Parameter(
+        default=[], visibility=ParameterVisibility.HIDDEN
+    )
 
     def requires(self):
         return self.dynamic_requires
@@ -163,7 +171,12 @@ class BirdNetEmbeddingsWithNeighbors(luigi.Task):
                     on="filename",
                 )
                 .orderBy("filename", "start_sec")
-                .withColumn("id", F.monotonically_increasing_id())
+                # we want to ensure that we can correspond between neighbors
+                # found by nn-descent and the entries here, though bringing
+                # everything into the driver is generally bad.
+                .withColumn(
+                    "id", F.row_number().over(Window.orderBy("filename", "start_sec"))
+                )
             ).cache()
 
             X = np.stack(joined.select("emb").toPandas().emb)
@@ -180,7 +193,6 @@ class BirdNetEmbeddingsWithNeighbors(luigi.Task):
             joined = joined.join(spark.createDataFrame(query_df), on="id")
 
             joined.printSchema()
-            # joined.show(3, vertical=True)
 
             # we're not going to be using this dataset in pandas, so let's just
             # write it out partitioned

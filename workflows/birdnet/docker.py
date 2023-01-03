@@ -12,7 +12,7 @@ class BirdNetAnalyzeTask(DockerTask):
     birdclef_root_path = luigi.Parameter()
     output_path = luigi.Parameter()
     species = luigi.Parameter()
-    n_threads = luigi.IntParameter(default=4)
+    n_threads = luigi.IntParameter(default=4, significant=False)
 
     image = "us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/birdnet:latest"
     environment = {"NUMBA_CACHE_DIR": "/tmp"}
@@ -85,8 +85,8 @@ class BirdNetEmbeddingsTask(BirdNetAnalyzeTask):
 class BirdNetAnalyzeTaskAllTask(luigi.WrapperTask):
     birdclef_root_path = luigi.Parameter()
     output_path = luigi.Parameter()
-    n_threads = luigi.IntParameter(default=4)
-    limit = luigi.IntParameter(default=None)
+    n_threads = luigi.IntParameter(default=4, significant=False)
+    limit = luigi.IntParameter(default=-1)
 
     upstream_task_type = BirdNetAnalyzeTask
 
@@ -94,7 +94,7 @@ class BirdNetAnalyzeTaskAllTask(luigi.WrapperTask):
         species = sorted(
             [p.name for p in Path(f"{self.birdclef_root_path}/train_audio").glob("*")]
         )
-        if self.limit is not None:
+        if self.limit > -1:
             species = species[: self.limit]
         for specie in species:
             yield self.upstream_task_type(
