@@ -3,7 +3,11 @@ import os
 import luigi
 
 from .docker import BirdNetAnalyzeTaskAllTask, BirdNetEmbeddingsTaskAllTask
-from .preprocess import BirdNetAnalyzeConcatTask, BirdNetEmbeddingsConcatTask
+from .preprocess import (
+    BirdNetAnalyzeConcatTask,
+    BirdNetEmbeddingsConcatTask,
+    BirdNetEmbeddingsWithNeighbors,
+)
 
 
 class BirdNetTask(luigi.WrapperTask):
@@ -22,27 +26,39 @@ class BirdNetTask(luigi.WrapperTask):
         )
         yield analyze_task
 
-        yield BirdNetAnalyzeConcatTask(
+        analyze_concat_task = BirdNetAnalyzeConcatTask(
             taxonomy_path=f"{self.birdclef_root_path}/eBird_Taxonomy_v2021.csv",
             input_path=f"{self.intermediate_path}/birdnet/analyze",
             output_path=self.output_path,
             parallelism=self.parallelism,
             dynamic_requires=[analyze_task],
         )
+        yield analyze_concat_task
 
         emb_task = BirdNetEmbeddingsTaskAllTask(
             birdclef_root_path=self.birdclef_root_path,
             output_path=f"{self.intermediate_path}/birdnet/embeddings",
-            n_threads=n_threads,
+            n_threads=self.n_threads,
         )
         yield emb_task
 
-        yield BirdNetEmbeddingsConcatTask(
+        embeddings_concat_task = BirdNetEmbeddingsConcatTask(
             input_path=f"{self.intermediate_path}/birdnet/embeddings",
             output_path=self.output_path,
             parallelism=self.parallelism,
             dynamic_requires=[emb_task],
         )
+        yield embeddings_concat_task
+
+        emb_with_neighbors = BirdNetEmbeddingsWithNeighbors(
+            birdnet_analyze_path=analyze_concat_task.output().path,
+            birdnet_embeddings_path=embeddings_concat_task.output().path,
+            train_metadata_path=f"{self.birdclef_root_path}/train_metadata.csv",
+            output_path=self.output_path,
+            parallelism=self.parallelism,
+            dynamic_requires=[analyze_concat_task, embeddings_concat_task],
+        )
+        yield emb_with_neighbors
 
 
 if __name__ == "__main__":

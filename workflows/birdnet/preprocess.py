@@ -6,6 +6,7 @@ from pathlib import Path
 import luigi
 import numpy as np
 import pandas as pd
+from pynndescent import NNDescent
 from pyspark.sql import functions as F
 from tqdm import tqdm
 
@@ -120,3 +121,67 @@ class BirdNetEmbeddingsConcatTask(luigi.Task):
             df.printSchema()
             df.show(3, vertical=True)
             df.toPandas().to_parquet(self.output().path, index=False)
+
+
+class BirdNetEmbeddingsWithNeighbors(luigi.Task):
+    """Combine all metadata into a single file, with nearest neighbors."""
+
+    birdnet_analyze_path = luigi.Parameter()
+    birdnet_embeddings_path = luigi.Parameter()
+    train_metadata_path = luigi.Parameter()
+    output_path = luigi.Parameter()
+    train_n_neighbors = luigi.IntParameter(default=30)
+    query_n_neighbors = luigi.IntParameter(default=50)
+
+    partitions = luigi.IntParameter(default=16)
+    parallelism = luigi.IntParameter(default=os.cpu_count())
+
+    dynamic_requires = luigi.Parameter(default=[])
+
+    def requires(self):
+        return self.dynamic_requires
+
+    def output(self):
+        return luigi.LocalTarget(
+            f"{self.output_path}/birdnet-embeddings-with-neighbors/v1"
+        )
+
+    def run(self):
+        with spark_resource(cores=self.parallelism) as spark:
+            birdnet_analyze = spark.read.parquet(self.birdnet_analyze_path)
+            birdnet_embeddings = spark.read.parquet(self.birdnet_embeddings_path)
+            train_metadata = spark.read.csv(self.train_metadata_path, header=True)
+
+            joined = (
+                birdnet_analyze.join(
+                    birdnet_embeddings, on=["filename", "start_sec", "end_sec"]
+                )
+                .join(
+                    train_metadata.select(
+                        "filename", "primary_label", "secondary_labels", "type"
+                    ),
+                    on="filename",
+                )
+                .orderBy("filename", "start_sec")
+                .withColumn("id", F.monotonically_increasing_id())
+            ).cache()
+
+            X = np.stack(joined.select("emb").toPandas().emb)
+            index = NNDescent(X, n_neighbors=self.train_n_neighbors, verbose=True)
+            neighbors, distances = index.query(X, k=self.query_n_neighbors)
+            query_df = pd.DataFrame(
+                dict(
+                    id=joined.select("id").toPandas().id,
+                    neighbors=neighbors.tolist(),
+                    distances=distances.tolist(),
+                )
+            )
+
+            joined = joined.join(spark.createDataFrame(query_df), on="id")
+
+            joined.printSchema()
+            # joined.show(3, vertical=True)
+
+            # we're not going to be using this dataset in pandas, so let's just
+            # write it out partitioned
+            joined.repartition(self.partitions).write.parquet(self.output().path)
