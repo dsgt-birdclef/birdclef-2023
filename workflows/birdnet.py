@@ -195,11 +195,11 @@ class BirdNetEmbeddingsConcatTask(luigi.Task):
         return luigi.LocalTarget(f"{self.output_path}/birdnet-embeddings.parquet")
 
     def run(self):
-        def parse_meta_path(path: str) -> dict:
+        def format_filename(path: str) -> str:
             species, name = Path(path).parts[-2:]
-            # name is like {ID}.birdnet.embeddings.txt
+            # name is like {ID}.birdnet.embeddings.txt want {species}/{ID}.ogg
             id = name.split(".")[0]
-            return dict(species=species, id=id)
+            return f"{species}/{id}.ogg"
 
         def parse_emb_text(emb_text: str) -> np.ndarray:
             return np.fromstring(emb_text, dtype=float, sep=",").tolist()
@@ -212,18 +212,16 @@ class BirdNetEmbeddingsConcatTask(luigi.Task):
                     schema="start_sec FLOAT, end_sec FLOAT, emb_text STRING",
                 )
                 .withColumn(
-                    "path",
-                    F.udf(parse_meta_path, "struct<species: string, id: string>")(
-                        F.input_file_name()
-                    ),
+                    "filename",
+                    F.udf(format_filename, "string")(F.input_file_name()),
                 )
                 .select(
                     "start_sec",
                     "end_sec",
-                    "path.*",
+                    "filename",
                     F.udf(parse_emb_text, "array<float>")("emb_text").alias("emb"),
                 )
-                .orderBy("species", "id", "start_sec")
+                .orderBy("filename", "start_sec")
             )
             df.printSchema()
             df.show(3, vertical=True)
