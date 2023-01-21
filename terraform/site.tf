@@ -24,6 +24,9 @@ resource "google_cloudbuild_trigger" "github" {
       invert_regex = false
     }
   }
+  substitutions = {
+    _REGION = local.region
+  }
   filename        = "cloudbuild.yaml"
   service_account = google_service_account.cloudbuild.id
   depends_on = [
