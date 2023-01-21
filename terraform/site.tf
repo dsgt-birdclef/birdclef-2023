@@ -25,6 +25,7 @@ resource "google_cloudbuild_trigger" "github" {
       invert_regex = false
     }
   }
+  include_build_logs = "INCLUDE_BUILD_LOGS_WITH_STATUS"
   substitutions = {
     _REGION = local.region
   }
