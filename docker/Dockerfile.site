@@ -1,0 +1,11 @@
+FROM node:18
+
+WORKDIR /site
+COPY ./site/package* ./
+RUN npm install
+
+COPY ./site ./
+
+ENV PORT=${PORT:-8000}
+RUN npm run build
+CMD node build/index.js

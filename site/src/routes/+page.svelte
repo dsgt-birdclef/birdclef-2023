@@ -1,2 +1,3 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<h1>DS@GT BirdCLEF 2023</h1>
+
+<p>This page contains work for the BirdCLEF 2023 competition.</p>
