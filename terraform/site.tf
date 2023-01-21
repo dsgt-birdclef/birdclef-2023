@@ -8,7 +8,8 @@ resource "google_project_iam_member" "cloudbuild" {
     "roles/iam.serviceAccountUser",
     "roles/logging.logWriter",
     "roles/run.admin",
-    "roles/storage.admin"
+    "roles/storage.admin",
+    "roles/artifactregistry.repoAdmin",
   ])
   project = data.google_project.project.project_id
   role    = each.key
