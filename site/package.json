@@ -12,8 +12,11 @@
     "format": "prettier --plugin-search-dir . --write ."
   },
   "devDependencies": {
+    "@rollup/plugin-replace": "^5.0.2",
     "@sveltejs/adapter-auto": "^1.0.0",
+    "@sveltejs/adapter-node": "^1.1.4",
     "@sveltejs/kit": "^1.0.0",
+    "mdsvex": "^0.10.6",
     "prettier": "^2.8.0",
     "prettier-plugin-svelte": "^2.8.1",
     "svelte": "^3.54.0",
