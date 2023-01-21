@@ -8,6 +8,8 @@ terraform {
 locals {
   project_id = "birdclef-2023"
   region     = "us-central1"
+  repo_name  = local.project_id
+  owner      = "dsgt-birdclef"
 }
 
 provider "google" {
@@ -15,16 +17,18 @@ provider "google" {
   region  = local.region
 }
 
-resource "google_project_service" "service" {
-  for_each = toset(["artifactregistry"])
+data "google_project" "project" {}
+
+resource "google_project_service" "default" {
+  for_each = toset(["artifactregistry", "run", "cloudbuild", "iam"])
   service  = "${each.key}.googleapis.com"
 }
 
 resource "google_artifact_registry_repository" "default" {
-  location      = "us-central1"
-  repository_id = "birdclef-2023"
+  location      = local.region
+  repository_id = local.repo_name
   format        = "DOCKER"
-  depends_on    = [google_project_service.service["artifactregistry"]]
+  depends_on    = [google_project_service.default["artifactregistry"]]
 }
 
 // get the compute engine default service account
@@ -62,7 +66,6 @@ resource "google_storage_bucket" "default" {
   }
 }
 
-
 resource "google_storage_bucket_iam_binding" "default-public" {
   bucket = google_storage_bucket.default.name
   role   = "roles/storage.objectViewer"
@@ -70,7 +73,6 @@ resource "google_storage_bucket_iam_binding" "default-public" {
     "allUsers"
   ]
 }
-
 
 output "bucket_name" {
   value = google_storage_bucket.default.name
