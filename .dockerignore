@@ -9,5 +9,6 @@ venv/
 *.egg-info/
 dask-worker-space/
 __pycache__/
+.env
 
 !data/raw/sound_separation/bird_mixit_model_checkpoints
