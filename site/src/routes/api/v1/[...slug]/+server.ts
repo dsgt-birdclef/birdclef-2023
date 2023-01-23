@@ -14,8 +14,10 @@ export async function GET({ url, params, fetch }: RequestEvent) {
   let client = url.searchParams.get("client") === "true";
   let redirect_url = build_path(params.slug, client);
   if (client) {
+    console.log(`redirecting to ${redirect_url}`);
     return Response.redirect(redirect_url, 302);
   } else {
+    console.log(`backend fetching ${redirect_url}`);
     return await fetch(redirect_url);
   }
 }
