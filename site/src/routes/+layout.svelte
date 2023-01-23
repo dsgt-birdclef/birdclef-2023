@@ -1,9 +1,8 @@
 <script lang="ts">
-  import "@picocss/pico/css/pico.min.css";
+  import "sakura.css/css/sakura.css";
 
   export let data: any;
   $: client_status = data && data.client_status;
-  $: console.log(client_status);
 </script>
 
 <main class="container">
