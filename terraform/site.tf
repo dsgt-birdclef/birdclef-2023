@@ -27,7 +27,8 @@ resource "google_cloudbuild_trigger" "github" {
   }
   include_build_logs = "INCLUDE_BUILD_LOGS_WITH_STATUS"
   substitutions = {
-    _REGION = local.region
+    _REGION           = local.region
+    _VITE_STATIC_HOST = "https://storage.googleapis.com/${google_storage_bucket.default.name}"
   }
   filename        = "cloudbuild.yaml"
   service_account = google_service_account.cloudbuild.id

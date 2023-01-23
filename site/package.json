@@ -27,6 +27,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@picocss/pico": "^1.5.6"
+    "sakura.css": "^1.4.1",
+    "tabulator-tables": "^5.4.3"
   }
 }

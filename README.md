@@ -84,3 +84,11 @@ pip-compile
 # observe that requirements.txt has changed locally
 # commit the result
 ```
+
+### syncing data
+
+Currently data is synchronized manually into a google cloud storage bucket.
+
+```bash
+gsutil -m rsync -r data/processed/ gs://birdclef-2023/data/processed/
+```

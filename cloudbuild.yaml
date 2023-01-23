@@ -11,6 +11,8 @@ steps:
         "build",
         "-f",
         "docker/Dockerfile.site",
+        "--build-arg",
+        "VITE_STATIC_HOST=${_VITE_STATIC_HOST}",
         "-t",
         "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest",
         "--cache-from",
