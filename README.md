@@ -90,5 +90,6 @@ pip-compile
 Currently data is synchronized manually into a google cloud storage bucket.
 
 ```bash
+gsutil -m rsync -r data/raw/ gs://birdclef-2023/data/raw/
 gsutil -m rsync -r data/processed/ gs://birdclef-2023/data/processed/
 ```

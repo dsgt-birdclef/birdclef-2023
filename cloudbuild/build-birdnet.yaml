@@ -1,0 +1,9 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["compose", "-f", "docker/docker-compose.birdnet.yml", "pull"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["compose", "-f", "docker/docker-compose.birdnet.yml", "build"]
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/birdnet:latest"
+options:
+  logging: CLOUD_LOGGING_ONLY

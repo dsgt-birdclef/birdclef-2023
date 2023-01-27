@@ -1,0 +1,10 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["compose", "-f", "docker/docker-compose.bird-mixit.yml", "pull"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["compose", "-f", "docker/docker-compose.bird-mixit.yml", "build"]
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/bird-mixit:latest"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/bird-mixit-gpu:latest"
+options:
+  logging: CLOUD_LOGGING_ONLY

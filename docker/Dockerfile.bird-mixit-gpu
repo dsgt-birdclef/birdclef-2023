@@ -2,12 +2,17 @@
 FROM tensorflow/tensorflow:latest-gpu
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg
+    apt-get install -y --no-install-recommends ffmpeg curl unzip
 
-# weights need to be downloaded beforehand
-# gcloud storage cp -r gs://gresearch/sound_separation/bird_mixit_model_checkpoints data/raw/sound_separation
 ADD vendor/sound-separation /app
-ADD data/raw/sound_separation/bird_mixit_model_checkpoints /app/checkpoints
+
+# download and unzip model checkpoints; note that bandwidth is free inside of GCP
+ENV MODEL_CHECKPOINT_URL=https://storage.googleapis.com/birdclef-2023/data/raw/sound_separation/bird_mixit_model_checkpoints.zip
+RUN curl $MODEL_CHECKPOINT_URL --output /tmp/model.zip && \
+    unzip /tmp/model.zip && \
+    mv bird_mixit_model_checkpoints /app/checkpoints && \
+    rm /tmp/model.zip
+
 ADD scripts /app/scripts
 
 WORKDIR /app

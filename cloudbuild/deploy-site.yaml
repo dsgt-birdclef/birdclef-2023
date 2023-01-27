@@ -3,8 +3,6 @@ steps:
     entrypoint: "bash"
     args:
       ["-c", "docker pull gcr.io/$PROJECT_ID/$REPO_NAME-app:latest || exit 0"]
-    waitFor: ["-"]
-    id: pull-site
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
@@ -19,13 +17,9 @@ steps:
         "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest",
         ".",
       ]
-    waitFor: [pull-site]
-    id: build-site
   - name: "gcr.io/cloud-builders/docker"
     args:
       ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest"]
-    waitFor: [build-site]
-    id: push-site
   - name: "gcr.io/cloud-builders/gcloud"
     args:
       [
@@ -39,8 +33,6 @@ steps:
         "--platform",
         "managed",
       ]
-    waitFor: [push-site]
-    id: deploy-site
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest"
 options:
