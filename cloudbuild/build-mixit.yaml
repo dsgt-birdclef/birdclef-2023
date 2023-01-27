@@ -1,4 +1,11 @@
 steps:
+  - name: "gcr.io/cloud-builders/git"
+    entrypoint: "bash"
+    args:
+      - -c
+      - |
+        git submodule init
+        git submodule update
   - name: "gcr.io/cloud-builders/docker"
     args: ["compose", "-f", "docker/docker-compose.bird-mixit.yml", "pull"]
   - name: "gcr.io/cloud-builders/docker"
