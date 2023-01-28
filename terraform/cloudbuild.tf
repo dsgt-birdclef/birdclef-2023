@@ -20,11 +20,11 @@ resource "google_cloudbuild_trigger" "default" {
     deploy-site-next = {
       filename_prefix = "deploy-site"
       branch          = "^main$"
-      substitutions   = { _NAMESPACE = next }
+      substitutions   = { _NAMESPACE = "next" }
     }
     deploy-site = {
       tag           = "^site-"
-      substitutions = { _NAMESPACE = live }
+      substitutions = { _NAMESPACE = "live" }
     },
     build-birdnet = { tag = "^app-" },
     build-mixit   = { tag = "^app-" },
