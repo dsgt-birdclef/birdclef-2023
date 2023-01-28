@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.3.0...app-v0.4.0) (2023-01-28)
+
+
+### Features
+
+* add commit/ref information to status; luxon for date parsing ([1a4742d](https://github.com/dsgt-birdclef/birdclef-2023/commit/1a4742d757bf58507a6fc3f741be5115409e67c0))
+* Add next and live deployments as separate cloudrun instances ([#18](https://github.com/dsgt-birdclef/birdclef-2023/issues/18)) ([972eaf6](https://github.com/dsgt-birdclef/birdclef-2023/commit/972eaf6b7fb37de8e6cd47d4e8bfef07d8bec556))
+
+
+### Bug Fixes
+
+* do not prefix envvar with VITE at built time ([6486fd6](https://github.com/dsgt-birdclef/birdclef-2023/commit/6486fd6d84e677872e7f210cdd27e351e0eb9cb0))
+* import DateTime from luxon instead of default ([f0d5705](https://github.com/dsgt-birdclef/birdclef-2023/commit/f0d57058cb0ecdd279a756128b4eafcb9c7c1638))
+* set commit/ref/namespace information in build ([176b759](https://github.com/dsgt-birdclef/birdclef-2023/commit/176b7598c9f4b52db725d6a4641f10b8bb3a025e))
+
 ## [0.3.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.2.0...app-v0.3.0) (2023-01-28)
 
 
