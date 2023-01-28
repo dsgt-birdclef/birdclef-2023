@@ -1,5 +1,6 @@
 resource "google_cloud_run_v2_service" "default" {
-  name     = local.repo_name
+  for_each = toset(["live", "next"])
+  name     = "${local.repo_name}-${each.key}"
   location = local.region
 
   template {
@@ -7,7 +8,7 @@ resource "google_cloud_run_v2_service" "default" {
       max_instance_count = 20
     }
     containers {
-      image = "${local.region}-docker.pkg.dev/${local.project_id}/${local.repo_name}/site:latest"
+      image = "${local.region}-docker.pkg.dev/${local.project_id}/${local.repo_name}/site:${each.key}"
     }
   }
 
@@ -20,12 +21,16 @@ resource "google_cloud_run_v2_service" "default" {
 }
 
 resource "google_cloud_run_service_iam_member" "all-users" {
-  service  = google_cloud_run_v2_service.default.name
-  location = google_cloud_run_v2_service.default.location
+  for_each = toset(keys(google_cloud_run_v2_service.default))
+  service  = google_cloud_run_v2_service.default[each.key].name
+  location = google_cloud_run_v2_service.default[each.key].location
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
 
 output "service_url" {
-  value = google_cloud_run_v2_service.default.uri
+  value = {
+    for key in keys(google_cloud_run_v2_service.default) :
+    key => google_cloud_run_v2_service.default[key].uri
+  }
 }

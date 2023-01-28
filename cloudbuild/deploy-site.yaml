@@ -26,7 +26,7 @@ steps:
       [
         "run",
         "deploy",
-        "$REPO_NAME",
+        "$REPO_NAME-$_NAMESPACE",
         "--image",
         "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:$_NAMESPACE",
         "--region",
