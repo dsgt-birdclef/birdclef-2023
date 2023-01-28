@@ -1,20 +1,24 @@
 <script lang="ts">
   import "sakura.css/css/sakura.css";
+  import luxon from "luxon";
 
   export let data: any;
+  let github_url = "https://github.com/dsgt-birdclef/birdclef-2023";
   $: client_status = data && data.client_status;
+  $: build_time = client_status && luxon.DateTime.fromISO(client_status.build_time);
 </script>
 
 <main class="container">
   <nav class="box">
     <div>
       <a href="/">[ home ]</a>
-      <a href="https://github.com/dsgt-birdclef/birdclef-2023">[ github ]</a>
+      <a href={github_url}>[ github ]</a>
     </div>
     {#if client_status}
       <div>
-        <b>app</b>: v{client_status.version}
-        <b>build time</b>: {client_status.build_time}
+        <b>app</b>:
+        <a href="{github_url}/commit/{client_status.commit_sha}">v{client_status.version}</a>
+        <b>build time</b>: {build_time.toLocaleString(luxon.DateTime.DATETIME_MED)}
       </div>
     {/if}
   </nav>

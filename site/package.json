@@ -28,6 +28,7 @@
   "type": "module",
   "dependencies": {
     "lodash-es": "^4.17.21",
+    "luxon": "^3.2.1",
     "sakura.css": "^1.4.1",
     "tabulator-tables": "^5.4.3"
   }
