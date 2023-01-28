@@ -3,10 +3,16 @@ steps:
     args: ["compose", "pull"]
   - &build
     name: "gcr.io/cloud-builders/docker"
-    args: ["build", "--build-arg", "VITE_STATIC_HOST=${_VITE_STATIC_HOST}"]
+    args:
+      [
+        "compose",
+        "build",
+        "--build-arg",
+        "VITE_STATIC_HOST=${_VITE_STATIC_HOST}",
+      ]
   - &push
     name: "gcr.io/cloud-builders/docker"
-    args: ["push"]
+    args: ["compose", "push"]
   - <<: *build
     env: [TAG=$REF_NAME]
   - <<: *push
