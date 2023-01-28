@@ -14,10 +14,12 @@ resource "google_kms_crypto_key" "sops" {
   }
 }
 
-resource "google_kms_crypto_key_iam_member" "sops" {
+resource "google_kms_crypto_key_iam_binding" "sops" {
   crypto_key_id = google_kms_crypto_key.sops.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  members = [
+    "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  ]
 }
 
 output "sops-key" {
@@ -29,7 +31,7 @@ output "sops-key" {
 locals {
   filenames = {
     for path in fileset(path.module, "../secrets/*") :
-    replace(replace(basename(path), ".sops", ""), ".", "__") => path
+    replace(replace(basename(path), ".sops", ""), ".", "_") => path
   }
 }
 
