@@ -16,7 +16,7 @@ resource "google_kms_crypto_key" "sops" {
 
 resource "google_kms_crypto_key_iam_member" "sops" {
   crypto_key_id = google_kms_crypto_key.sops.id
-  role          = "roles/cloudkms.cryptoKeyEncrypter"
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
