@@ -1,4 +1,28 @@
 steps:
+  # NOTE: we configure ssh access since we need submodule support here
+  # https://cloud.google.com/build/docs/access-github-from-build
+  - name: "gcr.io/cloud-builders/git"
+    secretEnv: [SSH_KEY]
+    entrypoint: "bash"
+    args:
+      - -c
+      - |
+        echo "$$SSH_KEY" >> /root/.ssh/id_rsa
+        chmod 400 /root/.ssh/id_rsa
+        cp known_hosts.github /root/.ssh/known_hosts
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
+  - name: "gcr.io/cloud-builders/git"
+    entrypoint: "bash"
+    args:
+      - -c
+      - |
+        git submodule init
+        git submodule update
+    volumes:
+      - name: "ssh"
+        path: /root/.ssh
   - name: "gcr.io/cloud-builders/docker"
     args: ["compose", "-f", "docker/docker-compose.birdnet.yml", "pull"]
   - name: "gcr.io/cloud-builders/docker"
@@ -7,3 +31,8 @@ images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/birdnet:latest"
 options:
   logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/id_cloudbuild_deploy/versions/latest
+      env: SSH_KEY
