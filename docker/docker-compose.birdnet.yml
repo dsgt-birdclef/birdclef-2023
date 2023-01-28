@@ -4,4 +4,6 @@ services:
     build:
       context: ../vendor/BirdNET-Analyzer
       dockerfile: Dockerfile
-    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/birdnet:latest
+      cache_from:
+        - us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/birdnet:latest
+    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/birdnet:${TAG:-latest}

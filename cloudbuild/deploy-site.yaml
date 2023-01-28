@@ -1,28 +1,20 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    entrypoint: "bash"
-    args:
-      [
-        "-c",
-        "docker pull ${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest || exit 0",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "-f",
-        "docker/Dockerfile.site",
-        "--build-arg",
-        "VITE_STATIC_HOST=${_VITE_STATIC_HOST}",
-        "-t",
-        "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest",
-        "--cache-from",
-        "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest",
-        ".",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest"]
+    args: ["compose", "pull"]
+  - &build
+    name: "gcr.io/cloud-builders/docker"
+    args: ["build", "--build-arg", "VITE_STATIC_HOST=${_VITE_STATIC_HOST}"]
+  - &push
+    name: "gcr.io/cloud-builders/docker"
+    args: ["push"]
+  - <<: *build
+    env: [TAG=$REF_NAME]
+  - <<: *push
+    env: [TAG=$REF_NAME]
+  - <<: *build
+    env: [TAG=$_NAMESPACE]
+  - <<: *push
+    env: [TAG=$_NAMESPACE]
   - name: "gcr.io/cloud-builders/gcloud"
     args:
       [
@@ -30,13 +22,15 @@ steps:
         "deploy",
         "$REPO_NAME",
         "--image",
-        "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest",
+        "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:$_NAMESPACE",
         "--region",
         "${_REGION}",
         "--platform",
         "managed",
       ]
 images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:$REF_NAME"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:$_NAMESPACE"
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/site:latest"
 options:
   logging: CLOUD_LOGGING_ONLY

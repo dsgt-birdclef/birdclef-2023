@@ -13,7 +13,9 @@ services:
   site:
     build:
       dockerfile: docker/Dockerfile.site
-    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/site:latest
+      cache_from:
+        - us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/site:latest
+    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/site:${TAG:-latest}
     restart: always
     volumes:
       - ./site:/site
