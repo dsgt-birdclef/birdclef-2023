@@ -21,7 +21,7 @@ services:
       - ./site:/site
       - node_modules:/app/node_modules
       - ${GCLOUD_CONFIG_PATH:-~/.config/gcloud}:/root/.config/gcloud
-    command: npm run dev -- --host --port 5173
+    command: bash -c "npm install && npm run dev -- --host --port 5173"
     ports:
       - "5173:5173"
     depends_on:
