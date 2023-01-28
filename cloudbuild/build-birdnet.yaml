@@ -26,10 +26,14 @@ steps:
         path: /root/.ssh
   - name: "gcr.io/cloud-builders/docker"
     args: ["compose", "-f", "docker/docker-compose.birdnet.yml", "pull"]
-  - name: "gcr.io/cloud-builders/docker"
+  - &build
+    name: "gcr.io/cloud-builders/docker"
     args: ["compose", "-f", "docker/docker-compose.birdnet.yml", "build"]
+  - <<: *build
+    env: [TAG=$REF_NAME]
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/birdnet:latest"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/birdnet:$REF_NAME"
 options:
   logging: CLOUD_LOGGING_ONLY
 

@@ -1,10 +1,17 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ["compose", "-f", "docker/docker-compose.bird-mixit.yml", "pull"]
-  - name: "gcr.io/cloud-builders/docker"
+  - &build
+    name: "gcr.io/cloud-builders/docker"
     args: ["compose", "-f", "docker/docker-compose.bird-mixit.yml", "build"]
+  - <<: *build
+    env: [TAG=$COMMIT_SHA]
+  - <<: *build
+    env: [TAG=$REF_NAME]
 images:
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/bird-mixit:latest"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/bird-mixit:$REF_NAME"
   - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/bird-mixit-gpu:latest"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/bird-mixit-gpu:$REF_NAME"
 options:
   logging: CLOUD_LOGGING_ONLY
