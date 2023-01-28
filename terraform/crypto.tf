@@ -55,6 +55,16 @@ resource "google_secret_manager_secret" "default" {
 
 resource "google_secret_manager_secret_version" "default" {
   for_each    = local.filenames
-  secret      = google_secret_manager_secret.default[each.key].id
+  secret      = google_secret_manager_secret.default[each.key].secret_id
   secret_data = data.sops_file.default[each.key].raw
+}
+
+resource "google_secret_manager_secret_iam_binding" "binding" {
+  for_each  = local.filenames
+  secret_id = google_secret_manager_secret.default[each.key].secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  members = [
+    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:${google_service_account.cloudbuild.email}",
+  ]
 }
