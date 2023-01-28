@@ -1,6 +1,6 @@
 resource "google_cloud_run_v2_service" "default" {
   for_each = toset(["live", "next"])
-  name     = local.repo_name
+  name     = "${local.repo_name}-${each.key}"
   location = local.region
 
   template {
