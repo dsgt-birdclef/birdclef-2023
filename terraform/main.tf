@@ -20,8 +20,16 @@ provider "google" {
 data "google_project" "project" {}
 
 resource "google_project_service" "default" {
-  for_each = toset(["artifactregistry", "run", "cloudbuild", "iam", "cloudkms", "secretmanager"])
-  service  = "${each.key}.googleapis.com"
+  for_each = toset([
+    "artifactregistry",
+    "run",
+    "cloudbuild",
+    "iam",
+    "cloudkms",
+    "secretmanager",
+    "batch",
+  ])
+  service = "${each.key}.googleapis.com"
 }
 
 resource "google_artifact_registry_repository" "default" {
