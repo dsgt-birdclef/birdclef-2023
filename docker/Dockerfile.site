@@ -7,7 +7,15 @@ RUN npm install
 COPY ./site ./
 
 ARG VITE_STATIC_HOST=https://storage.googleapis.com/birdclef-2023
+ARG VITE_COMMIT_SHA=unknown
+ARG VITE_REF_NAME=unknown
+ARG VITE_NAMESPACE=development
+
 ENV VITE_STATIC_HOST=${VITE_STATIC_HOST}
+ENV VITE_COMMIT_SHA=${VITE_COMMIT_SHA}
+ENV VITE_REF_NAME=${VITE_REF_NAME}
+ENV VITE_NAMESPACE=${VITE_NAMESPACE}
+
 ENV PORT=${PORT:-8000}
 RUN npm run build
 CMD node build/index.js
