@@ -1,0 +1,2 @@
+creation_rules:
+  - gcp_kms: projects/birdclef-2023/locations/global/keyRings/sops/cryptoKeys/sops-default
