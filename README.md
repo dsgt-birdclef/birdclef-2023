@@ -4,6 +4,12 @@ Code for the BirdCLEF 2023 competition with members of DS@GT.
 
 Some code from the [birdclef-eda-f22](https://github.com/dsgt-birdclef/birdclef-eda-f22) and [birdclef-2022](https://github.com/dsgt-birdclef/birdclef-2022) repositories was used.
 
+| namespace         | url                                        |
+| ----------------- | ------------------------------------------ |
+| prod (live alias) | https://birdclef-2023.dsgt-kaggle.org      |
+| live              | https://birdclef-2023.live.dsgt-kaggle.org |
+| next              | https://birdclef-2023.next.dsgt-kaggle.org |
+
 ## quickstart
 
 ### python
