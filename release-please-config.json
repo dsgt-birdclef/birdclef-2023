@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "component": "app"
+    },
+    "site": {
+      "release-type": "node",
+      "component": "site"
+    }
+  },
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "group-name": "birdclef-2023",
+      "components": ["app", "site"]
+    }
+  ]
+}
