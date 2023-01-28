@@ -6,8 +6,8 @@ export async function GET() {
     mode: import.meta.env.MODE,
     version: "__VERSION__",
     build_time: "__BUILD_TIME__",
-    commit_sha: import.meta.env.COMMIT_SHA || "unknown",
-    ref_name: import.meta.env.REF_NAME || "unknown",
-    namespace: import.meta.env.NAMESPACE || "development",
+    commit_sha: "__COMMIT_SHA__",
+    ref_name: "__REF_NAME__",
+    namespace: "__NAMESPACE__",
   });
 }

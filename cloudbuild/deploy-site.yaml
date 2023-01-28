@@ -10,7 +10,7 @@ steps:
         "--build-arg",
         "VITE_STATIC_HOST=${_VITE_STATIC_HOST}",
         "--build-arg",
-        "VITE_COMMIT_SHA=${COMMIT_SHA}",
+        "VITE_COMMIT_SHA=${SHORT_SHA}",
         "--build-arg",
         "VITE_REF_NAME=${REF_NAME}",
         "--build-arg",
