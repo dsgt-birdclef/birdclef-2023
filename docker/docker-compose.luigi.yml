@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  luigi:
+    build:
+      dockerfile: docker/Dockerfile.luigi
+      context: ..
+      cache_from:
+        - us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/luigi:latest
+    image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/luigi:${TAG:-latest}
+    ports:
+      - 8082:8082
+    environment:
+      - PORT=8082

@@ -28,6 +28,8 @@ resource "google_cloudbuild_trigger" "default" {
     },
     build-birdnet = { tag = "^app-" },
     build-mixit   = { tag = "^app-" },
+    // always build luigi on the main branch, because it's super cheap to do so
+    build-luigi = { branch = "^main$" },
   }
   name = each.key
   github {

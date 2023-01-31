@@ -22,11 +22,6 @@ setuptools.setup(
         "tqdm",
         "pyarrow",
         "torch",
-        "nnAudio",
-        "pytorch-lightning",
-        "torch-audiomentations",
-        "torch-summary",
-        "audiomentations",
         'importlib-metadata>=0.12;python_version<"3.8"',
     ],
 )

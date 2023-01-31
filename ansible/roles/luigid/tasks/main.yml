@@ -1,0 +1,13 @@
+---
+- name: create directory for config
+  file:
+    path: /opt/luigid
+    state: directory
+
+- name: copy files to remote
+  copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+  with_items:
+    - opt/luigid/docker-compose.yml
+    - opt/luigid/luigi.cfg
