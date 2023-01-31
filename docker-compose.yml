@@ -7,7 +7,7 @@ services:
     restart: always
     volumes:
       - ./data/:/app/data:ro
-      - ./nginx/${NGINX_CONF:-remote}.conf:/etc/nginx/conf.d/default.conf
+      - ./conf/nginx/${NGINX_CONF:-remote}.conf:/etc/nginx/conf.d/default.conf
     ports:
       - "4000:4000"
   site:

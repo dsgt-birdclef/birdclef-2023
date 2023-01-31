@@ -42,7 +42,7 @@ resource "google_cloudbuild_trigger" "default" {
     }
   }
   include_build_logs = "INCLUDE_BUILD_LOGS_WITH_STATUS"
-  filename           = "cloudbuild/${lookup(each.value, "filename_prefix", each.key)}.yaml"
+  filename           = "conf/cloudbuild/${lookup(each.value, "filename_prefix", each.key)}.yaml"
   substitutions = merge(
     lookup(each.value, "substitutions", {}),
     {
