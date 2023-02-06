@@ -1,0 +1,50 @@
+---
+# NOTE: it might be better to build a packer image, but this will do too
+
+# https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+- name: install gh tool
+  become: yes
+  block:
+    - name: download key and update apt repo for gh cli
+      apt_key:
+        url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+        state: present
+    - name: add gh cli apt repo
+      apt_repository:
+        repo: deb [arch=amd64] https://cli.github.com/packages stable main
+        state: present
+        filename: github-cli
+    - name: install gh cli
+      apt:
+        name: gh
+        state: present
+- name: install sops
+  become: yes
+  block:
+    - name: set sops version
+      set_fact:
+        sops_version: "3.7.3"
+    - name: download sops deb
+      get_url:
+        url: https://github.com/mozilla/sops/releases/download/v{{ sops_version }}/sops_{{ sops_version }}_amd64.deb
+        dest: /tmp/sops.deb
+    - name: install sops
+      apt:
+        deb: /tmp/sops.deb
+        state: present
+- name: install tfenv
+  become: yes
+  block:
+    - name: install tfenv
+      git:
+        repo: https://github.com/tfutils/tfenv.git
+        dest: /opt/tfenv
+        version: v3.0.0
+    - name: link tfenv to /usr/local/bin
+      file:
+        src: /opt/tfenv/bin/{{ item }}
+        dest: /usr/local/bin/{{ item }}
+        state: link
+      with_items:
+        - tfenv
+        - terraform
