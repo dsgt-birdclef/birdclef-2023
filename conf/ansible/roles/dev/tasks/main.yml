@@ -48,3 +48,25 @@
       with_items:
         - tfenv
         - terraform
+- name: install default other apt dependencies
+  become: yes
+  apt:
+    name:
+      - openjdk-11-jdk # for spark
+      - libffi-dev # for ansible
+    state: present
+- name: upgrade pip
+  become: yes
+  pip:
+    name:
+      - pip
+      - wheel
+    state: latest
+- name: install pip packages
+  become: yes
+  pip:
+    state: latest
+    name:
+      - ansible
+      - pre-commit
+      - pip-tools
