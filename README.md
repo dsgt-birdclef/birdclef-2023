@@ -14,16 +14,16 @@ Some code from the [birdclef-eda-f22](https://github.com/dsgt-birdclef/birdclef-
 
 ### python
 
-Install Python 3.7 or above. Install [pipx] to manage a few utilities like
-[pip-tools] and [pre-commit].
+Install Python 3.7 or above.
+Install dependencies using pip.
 
 ```bash
-pipx install pip-tools
-pipx install pre-commit
+pip install pip-tools
+pip install pre-commit
 ```
 
-Install the pre-commit hooks. This will ensure that all the code is formatted
-correctly.
+Install the pre-commit hooks.
+This will ensure that all the code is formatted correctly.
 
 ```bash
 pre-commit install
@@ -48,7 +48,6 @@ Then install all of the dependencies.
 pip install -r requirements.txt
 ```
 
-[pipx]: https://github.com/pypa/pipx
 [pip-tools]: https://github.com/jazzband/pip-tools
 [pre-commit]: https://pre-commit.com/
 
@@ -98,4 +97,7 @@ Currently data is synchronized manually into a google cloud storage bucket.
 ```bash
 gsutil -m rsync -r data/raw/ gs://birdclef-2023/data/raw/
 gsutil -m rsync -r data/processed/ gs://birdclef-2023/data/processed/
+
+# NOTE: to sync the other way, just reverse the order of the arguments
+gsutil -m rsync -r gs://birdclef-2023/data/processed/ data/processed/
 ```
