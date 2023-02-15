@@ -1,0 +1,30 @@
+- name: install nginx
+  apt:
+    name: nginx
+    update_cache: yes
+
+- name: copy nginx config file
+  copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+  with_items:
+    - etc/nginx/sites-available/default
+
+- name: enable configuration
+  file:
+    dest: /etc/nginx/sites-enabled/{{ item }}
+    src: /etc/nginx/sites-available/{{ item }}
+    state: link
+  with_items:
+    - default
+
+- name: copy index.html
+  template:
+    src: index.html.j2
+    dest: /usr/share/nginx/html/index.html
+    mode: 0644
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

@@ -37,3 +37,4 @@ ansible-playbook -i inventory.dev.gcp.yml dev.yml
 - https://docs.ansible.com/ansible/latest/collections/google/cloud/gcp_compute_inventory.html
 - http://matthieure.me/2018/12/31/ansible_inventory_plugin.html
 - https://www.bionconsulting.com/blog/gcp-iap-tunnelling-on-ansible-with-dynamic-inventory
+- https://charlesreid1.com/wiki/Ansible/Nginx_Playbook
