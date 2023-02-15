@@ -6,6 +6,7 @@ resource "google_compute_instance" "luigi" {
   labels = {
     app = "luigi"
   }
+  tags                      = ["http-server", "https-server"]
   allow_stopping_for_update = true
 
   boot_disk {
@@ -17,7 +18,6 @@ resource "google_compute_instance" "luigi" {
   network_interface {
     network = "default"
     access_config {
-
     }
   }
   scheduling {
