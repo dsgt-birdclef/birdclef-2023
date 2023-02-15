@@ -27,6 +27,12 @@
     - opt/luigid/docker-compose.yml
     - opt/luigid/luigi.cfg
 
+- name: get luigi oauth2 dotenv from google secrets manager
+  command: |
+    gcloud secrets versions access latest \
+      --secret luigi_oauth2_proxy_dotenv \
+      --out-file /opt/luigid/.env
+
 - name: bring up containers
   docker_compose:
     project_src: /opt/luigid

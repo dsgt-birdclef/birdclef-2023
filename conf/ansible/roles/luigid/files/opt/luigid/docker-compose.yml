@@ -7,5 +7,25 @@ services:
       - 8082:8082
     environment:
       - PORT=8082
+      - LUIGI_CONFIG_PATH=/app/luigi.cfg
     volumes:
       - ./:/app
+  oauth2-proxy:
+    restart: always
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
+    # https://github.com/oauth2-proxy/oauth2-proxy/issues/1669
+    command: >
+      --email-domain=*
+      --upstream=http://luigi:8082
+      --redirect-url=https://${DOMAIN_NAME?domain name not set}/oauth2/callback
+      --http-address=0.0.0.0:4180
+      --provider=github
+      --github-org=dsgt-birdclef
+      --scope=user:email
+    ports:
+      - 4180:4180
+    environment:
+      - OAUTH2_PROXY_CLIENT_ID
+      - OAUTH2_PROXY_CLIENT_SECRET
+      - OAUTH2_PROXY_COOKIE_SECRET
+      - DOMAIN_NAME
