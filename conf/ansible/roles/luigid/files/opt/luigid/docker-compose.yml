@@ -9,3 +9,18 @@ services:
       - PORT=8082
     volumes:
       - ./:/app
+  oauth2-proxy:
+    restart: always
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
+    command: >
+      --email-domain=*
+      --upstream=http://luigi:8082
+      --http-address=0.0.0.0:4180
+      --provider=github
+      --github-org=dsg-birdclef
+    ports:
+      - 4180:4180
+    environment:
+      - OAUTH2_PROXY_CLIENT_ID
+      - OAUTH2_PROXY_CLIENT_SECRET
+      - OAUTH2_PROXY_COOKIE_SECRET

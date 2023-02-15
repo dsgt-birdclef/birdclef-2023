@@ -55,7 +55,7 @@ resource "google_secret_manager_secret" "default" {
 
 resource "google_secret_manager_secret_version" "default" {
   for_each    = local.filenames
-  secret      = google_secret_manager_secret.default[each.key].secret_id
+  secret      = google_secret_manager_secret.default[each.key].id
   secret_data = data.sops_file.default[each.key].raw
 }
 
