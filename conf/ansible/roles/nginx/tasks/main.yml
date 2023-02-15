@@ -3,28 +3,86 @@
     name: nginx
     update_cache: yes
 
+- name: pull json secrets from google secrets manager
+  command: gcloud secrets versions access latest --secret lets_encrypt_json
+  register: lets_encrypt_json
+
+- name: set facts from json secrets
+  set_fact:
+    "{{ item }}": "{{ (lets_encrypt_json.stdout | from_json)[item] }}"
+  with_items:
+    - domain_name
+    - letsencrypt_email
+
+- name: copy nginx config file (j2)
+  template:
+    src: "{{ item }}.j2"
+    dest: "/{{ item }}"
+    mode: 0644
+  with_items:
+    - etc/nginx/sites-available/nginx-http
+    - etc/nginx/sites-available/nginx-https
+
 - name: copy nginx config file
-  copy:
+  template:
     src: "{{ item }}"
     dest: "/{{ item }}"
-  with_items:
-    - etc/nginx/sites-available/default
-
-- name: enable configuration
-  file:
-    dest: /etc/nginx/sites-enabled/{{ item }}
-    src: /etc/nginx/sites-available/{{ item }}
-    state: link
-  with_items:
-    - default
-
-- name: copy index.html
-  template:
-    src: index.html.j2
-    dest: /usr/share/nginx/html/index.html
     mode: 0644
+  with_items:
+    - etc/nginx/nginx.conf
+
+- name: enable http
+  file:
+    dest: /etc/nginx/sites-enabled/nginx-http
+    src: /etc/nginx/sites-available/nginx-http
+    state: link
+
+- name: disable https
+  file:
+    dest: /etc/nginx/sites-enabled/nginx-https
+    state: absent
 
 - name: restart nginx
   service:
     name: nginx
     state: restarted
+
+- name: install certbot
+  apt:
+    name: certbot
+    update_cache: yes
+
+- name: install certbot nginx plugin
+  apt:
+    name: python3-certbot-nginx
+    update_cache: yes
+
+- name: get certbot certificate
+  command: certbot certonly --nginx --agree-tos --email {{ letsencrypt_email }} -d {{ domain_name }}
+  args:
+    creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+
+- name: Generate dhparams
+  shell: openssl dhparam -out /etc/nginx/dhparams.pem 2048
+  args:
+    creates: /etc/nginx/dhparams.pem
+
+- name: enable all other sites
+  file:
+    dest: /etc/nginx/sites-enabled/{{ item }}
+    src: /etc/nginx/sites-available/{{ item }}
+    state: link
+  with_items:
+    - nginx-http
+    - nginx-https
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: renew letsencrypt certs cron
+  cron:
+    name: "renew letsencrypt certs"
+    special_time: weekly
+    job: certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start"

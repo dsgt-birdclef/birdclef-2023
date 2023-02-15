@@ -41,7 +41,7 @@ provider "sops" {}
 data "sops_file" "default" {
   for_each    = local.filenames
   source_file = each.value
-  input_type  = "raw"
+  input_type  = endswith(each.value, ".json") ? "json" : "raw"
 }
 
 resource "google_secret_manager_secret" "default" {
