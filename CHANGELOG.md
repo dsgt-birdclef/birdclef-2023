@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.4.0...app-v0.5.0) (2023-02-15)
+
+
+### Features
+
+* add docker image for luigi scheduler ([12eecb9](https://github.com/dsgt-birdclef/birdclef-2023/commit/12eecb94736de9580417d1789d1858459496fd6c))
+* add example cloud batch job ([e0c08c6](https://github.com/dsgt-birdclef/birdclef-2023/commit/e0c08c647a80a217d089322db36cb99b9d24f9f3))
+* add initial app container using kaggle gpu image ([174ac93](https://github.com/dsgt-birdclef/birdclef-2023/commit/174ac93941032beb34cfe4012149776c52ca7e02))
+* add teraform and ansible skeleton for setting up luigid ([77dd65a](https://github.com/dsgt-birdclef/birdclef-2023/commit/77dd65aa1548ce9ccee08d32f624b8608de765f5))
+* build luigi docker container on cloudbuild ([19b7b13](https://github.com/dsgt-birdclef/birdclef-2023/commit/19b7b13eae71324d3759ddd9a3f3973e4f7bfb78))
+* configure luigi vm with luigi docker image ([b4dafc0](https://github.com/dsgt-birdclef/birdclef-2023/commit/b4dafc09a9a842060cd32a827ed7b84bca3ca737))
+* reorganize configuration files (aside from docker) into conf ([ff80bda](https://github.com/dsgt-birdclef/birdclef-2023/commit/ff80bda8ac1a2c410d073119ca46f8bc6da60b4f))
+
+
+### Bug Fixes
+
+* install during docker startup ([1c3fb01](https://github.com/dsgt-birdclef/birdclef-2023/commit/1c3fb018001dadbaf664231b2cef3d16c489bf6a))
+* remove pip-tools from requirements ([f1e3d93](https://github.com/dsgt-birdclef/birdclef-2023/commit/f1e3d939d01e595ac0c7504bc630f8846df1d88d))
+
 ## [0.4.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.3.0...app-v0.4.0) (2023-01-28)
 
 ### Features
