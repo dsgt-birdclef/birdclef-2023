@@ -48,6 +48,15 @@
       with_items:
         - tfenv
         - terraform
+- name: install node 18
+  become: yes
+  block:
+    - name: add node deb repo
+      shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - name: install node
+      apt:
+        name: nodejs
+        state: present
 - name: install default other apt dependencies
   become: yes
   apt:
