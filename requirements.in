@@ -4,6 +4,10 @@ torch
 torchvision
 torchaudio
 
+# tensorflow to pytorch conversion
+tensorflow
+tensorboard
+
 # workflow management
 luigi
 docker
