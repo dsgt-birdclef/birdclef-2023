@@ -101,3 +101,35 @@ gsutil -m rsync -r data/processed/ gs://birdclef-2023/data/processed/
 # NOTE: to sync the other way, just reverse the order of the arguments
 gsutil -m rsync -r gs://birdclef-2023/data/processed/ data/processed/
 ```
+
+### data
+
+Grab the entirety of the data from last year's bucket.
+
+```bash
+mkdir -p data/raw
+gcloud storage cp -r gs://birdclef-2022/raw/birdclef-2022 data/raw
+```
+
+If you just want a subset of the data, consider the following:
+
+```bash
+suffix=raw/birdclef-2022/train_audio
+species=afrsil1
+mkdir -p data/${suffix}
+gcloud storage cp -r gs://birdclef-2022/${suffix}/${species} data/${suffix}
+```
+
+### configuring docker
+
+Make sure to authenticate against the artifact repository.
+
+```bash
+gcloud auth configure-docker us-central1-docker.pkg.dev
+```
+
+Note that we include the `-u $(id -u):$(id -g)` flag throughout to avoid
+permission issues between the container and the local user.
+This option may be unnecessary on Mac or Windows, so adjust the commands as appropriate.
+For simplicity, we opt to mount our data directory as a volume instead of
+individually mounting directories.
