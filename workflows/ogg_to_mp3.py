@@ -43,4 +43,8 @@ class OggToMP3(luigi.Task):
             new_file = image_file.replace(".ogg", ".mp3")
 
             new_file = new_file.split("/")[-1]
-            img.export(self.output_path + "/" + new_file, format="mp3")
+            img.export(
+                self.output_path + "/" + new_file,
+                format="mp3",
+                parameters=["-q:a", "5"],
+            )
