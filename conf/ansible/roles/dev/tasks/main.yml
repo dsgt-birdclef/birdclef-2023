@@ -86,6 +86,8 @@
     name:
       - openjdk-11-jdk # for spark
       - libffi-dev # for ansible
+      - ffmpeg # for audio processing
+      - libsndfile1 # for audio processing
     state: present
 - name: upgrade pip
   become: yes
