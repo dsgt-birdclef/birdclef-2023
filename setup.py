@@ -7,7 +7,7 @@ setuptools.setup(
     author="Anthony Miyaguchi",
     author_email="acmiyaguchi@gatech.edu",
     url="https://github.com/dsgt-birdclef/birdclef-2023",
-    packages=["birdclef", "workflows"],
+    packages=setuptools.find_packages(),
     install_requires=[
         "numpy",
         "pandas",
