@@ -34,17 +34,20 @@ class OggToMP3(luigi.Task):
         return x
 
     def run(self):
-        images = self.list_images()
+        tracks = self.list_images()
+
+        self.output_path = Path(self.output_path)
+        self.input_path = Path(self.input_path)
 
         if not os.path.isdir(self.output_path):
-            os.makedirs(self.output_path)
-        for image_file in images:
-            img = self.load_ogg(self.input_path + "/" + image_file)
-            new_file = image_file.replace(".ogg", ".mp3")
+            self.output_path.mkdir(parents=True, exist_ok=True)
+        for track_file in tracks:
+            track_audio = self.load_ogg(self.input_path / track_file)
+            new_file = track_file.replace(".ogg", ".mp3")
 
             new_file = new_file.split("/")[-1]
-            img.export(
-                self.output_path + "/" + new_file,
+            track_audio.export(
+                self.output_path / new_file,
                 format="mp3",
                 parameters=["-q:a", "5"],
             )
