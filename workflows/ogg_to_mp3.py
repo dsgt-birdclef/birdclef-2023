@@ -21,7 +21,7 @@ class OggToMP3(luigi.Task):
 
         # Note: Client.list_blobs requires at least package version 1.17.0.
         # images = storage_client.list_blobs(self.input_path)
-        images = os.listdir(self.input_path)
+        images = list(self.input_path.iterdir())
 
         return images
 
@@ -34,16 +34,17 @@ class OggToMP3(luigi.Task):
         return x
 
     def run(self):
-        tracks = self.list_images()
-
         self.output_path = Path(self.output_path)
         self.input_path = Path(self.input_path)
 
-        if not os.path.isdir(self.output_path):
+        tracks = self.list_images()
+
+        if not self.output_path.is_dir():
             self.output_path.mkdir(parents=True, exist_ok=True)
         for track_file in tracks:
             track_audio = self.load_ogg(self.input_path / track_file)
-            new_file = track_file.replace(".ogg", ".mp3")
+
+            new_file = str(track_file).replace(".ogg", ".mp3")
 
             new_file = new_file.split("/")[-1]
             track_audio.export(
