@@ -5,6 +5,7 @@ from pathlib import Path
 import luigi
 from google.cloud import storage
 from luigi.parameter import ParameterVisibility
+from pull import Pull
 from pydub import AudioSegment
 
 
@@ -16,17 +17,8 @@ class OggToMP3(luigi.Task):
     def output(self):
         return luigi.LocalTarget(self.output_path)
 
-    def list_images(self):
-        # storage_client = storage.Client()
-
-        # Note: Client.list_blobs requires at least package version 1.17.0.
-        # images = storage_client.list_blobs(self.input_path)
-        images = list(self.input_path.iterdir())
-
-        return images
-
     def requires(self):
-        return None
+        return Pull(self.input_path, self.output_path, self.parallelism)
 
     def load_ogg(self, ofn):
         x = AudioSegment.from_file(ofn)
