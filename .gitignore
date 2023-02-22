@@ -10,3 +10,4 @@ venv/
 dask-worker-space/
 __pycache__/
 .env
+.decrypted*
