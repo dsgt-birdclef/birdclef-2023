@@ -89,14 +89,14 @@ output "bucket_name" {
 // we create a new policy that allows developers to be editor, compute admin, and storage admin
 locals {
   // members in the crypto module
-  team_info = {
+  team_info = nonsensitive({
     for entry in yamldecode(data.sops_file.default["team_info_yaml"].raw).members :
     entry.username => entry.email
-  }
-  members = nonsensitive({
+  })
+  members = {
     for username, email in local.team_info :
     username => "user:${email}"
-  })
+  }
 }
 
 resource "google_project_iam_member" "editor" {

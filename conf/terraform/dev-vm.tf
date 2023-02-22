@@ -1,7 +1,7 @@
 // define the base vm instance for developers
 
 resource "google_compute_instance" "dev-vm" {
-  for_each     = toset(["acmiyaguchi"])
+  for_each     = toset(keys(local.team_info))
   name         = "${each.key}-dev"
   machine_type = "n2-standard-4"
   zone         = "${local.region}-a"
