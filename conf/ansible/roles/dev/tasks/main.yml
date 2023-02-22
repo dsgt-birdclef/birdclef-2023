@@ -79,29 +79,6 @@
       apt:
         name: nodejs
         state: present
-    # NOTE: deep learning image comes with conda, we're going to replace the node version
-    - name: check conda node bin
-      stat:
-        path: /opt/conda/bin/node
-      register: conda_node_bin
-    - name: link node to conda
-      when: conda_node_bin.stat.exists
-      block:
-        - name: remove conda node bin
-          file:
-            path: /opt/conda/bin/node
-            state: absent
-          with_items:
-            - node
-            - npm
-        - name: link system node to conda
-          file:
-            src: /usr/bin/{{ item }}
-            dest: /opt/conda/bin/{{ item }}
-            state: link
-          with_items:
-            - node
-            - npm
 - name: install default other apt dependencies
   become: yes
   apt:
@@ -158,7 +135,7 @@
         name:
           - nvidia-container-toolkit
         state: present
-    - name: configure nviia docker
+    - name: configure nvidia docker
       shell: nvidia-ctk runtime configure --runtime=docker
     - name: restart docker
       service:
