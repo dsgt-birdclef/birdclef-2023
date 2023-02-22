@@ -1,6 +1,28 @@
 ---
 # NOTE: it might be better to build a packer image, but this will do too
 
+# https://docs.docker.com/engine/install/ubuntu/
+- name: install docker
+  become: yes
+  block:
+    - name: download key for docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: add docker apt repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+    - name: install docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
 - name: install gh tool
   become: yes
@@ -84,6 +106,9 @@
   become: yes
   apt:
     name:
+      - python3-pip
+      - python3-venv
+      - python-is-python3
       - openjdk-11-jdk # for spark
       - libffi-dev # for ansible
       - ffmpeg # for audio processing
@@ -104,3 +129,38 @@
       - ansible
       - pre-commit
       - pip-tools
+- name: install nvidia drivers and cuda
+  become: yes
+  block:
+    - name: install nvidia drivers and cuda
+      apt:
+        name:
+          - nvidia-driver-525
+          - nvidia-utils-525
+          - nvidia-cuda-toolkit
+        state: present
+    # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+    - name: download key for nvidia docker
+      apt_key:
+        url: https://nvidia.github.io/libnvidia-container/gpgkey
+        state: present
+    - name: add nvidia docker repo
+      apt_repository:
+        repo: deb https://nvidia.github.io/{{ item }}/ubuntu22.04/amd64/ /
+        state: present
+        filename: "{{ item }}"
+      with_items:
+        - libnvidia-container
+        - nvidia-container-runtime
+        - nvidia-docker
+    - name: install nvidia docker packages
+      apt:
+        name:
+          - nvidia-container-toolkit
+        state: present
+    - name: configure nviia docker
+      shell: nvidia-ctk runtime configure --runtime=docker
+    - name: restart docker
+      service:
+        name: docker
+        state: restarted
