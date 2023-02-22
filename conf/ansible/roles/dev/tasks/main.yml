@@ -109,11 +109,15 @@
 - name: install nvidia drivers and cuda
   become: yes
   block:
-    - name: install nvidia drivers and cuda
+    - name: install nvidia drivers
       apt:
         name:
           - nvidia-driver-525
           - nvidia-utils-525
+        state: present
+    - name: install cuda
+      apt:
+        name:
           - nvidia-cuda-toolkit
         state: present
     # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
