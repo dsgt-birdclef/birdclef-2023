@@ -7,6 +7,8 @@ torchaudio
 # tensorflow to pytorch conversion
 tensorflow
 tensorboard
+tf2onnx
+onnx
 
 # workflow management
 luigi
