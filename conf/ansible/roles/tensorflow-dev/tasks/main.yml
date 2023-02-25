@@ -1,0 +1,21 @@
+# https://www.tensorflow.org/install/source
+- name: install bazelisk
+  become: yes
+  shell: npm install -g @bazel/bazelisk
+- name: python dev deps
+  become: yes
+  apt:
+    name:
+      - python3-dev
+      - python3-pip
+    state: latest
+- name: install numpy
+  become: yes
+  pip:
+    name:
+      - numpy
+      - packaging
+      - requests
+      - opt_einsum
+      - keras_preprocessing
+    state: latest
