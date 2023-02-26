@@ -9,6 +9,7 @@ tensorflow
 tensorboard
 tf2onnx
 onnx
+onnxruntime
 
 # workflow management
 luigi

@@ -97,6 +97,7 @@ Currently data is synchronized manually into a google cloud storage bucket.
 ```bash
 gsutil -m rsync -r data/raw/ gs://birdclef-2023/data/raw/
 gsutil -m rsync -r data/processed/ gs://birdclef-2023/data/processed/
+gsutil -m rsync -r data/models gs://birdclef-2023/data/models
 
 # NOTE: to sync the other way, just reverse the order of the arguments
 gsutil -m rsync -r gs://birdclef-2023/data/processed/ data/processed/
