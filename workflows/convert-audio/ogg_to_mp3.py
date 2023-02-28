@@ -18,13 +18,18 @@ class OggToMP3(luigi.Task):
         return luigi.LocalTarget(self.output_path)
 
     def requires(self):
-        return Pull(self.input_path, self.output_path, self.parallelism)
+        return self.dynamic_requires
 
     def load_ogg(self, ofn):
         x = AudioSegment.from_file(ofn)
 
         return x
+    
+    def list_images(self):
+        images = os.listdir(self.input_path)
 
+        return images
+        
     def run(self):
         self.output_path = Path(self.output_path)
         self.input_path = Path(self.input_path)
