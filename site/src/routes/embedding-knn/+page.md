@@ -2,6 +2,7 @@
     import AgreementTable from "./AgreementTable.svelte";
     import AgreementPercentPlot from "./AgreementPercentPlot.svelte";
     import AgreementCountPlot from "./AgreementCountPlot.svelte";
+    import AgreementClusterStaticPlot from "./AgreementClusterStaticPlot.svelte";
 
     export let data;
 </script>
@@ -29,3 +30,6 @@ It's hard to tell at first glance whether the slope of the log-log plot is less 
 
 Generally, we're able to see a marked improvement in agreement between the ego and knn labels.
 Note that quite a few points lie in the top-left quandrant, which represent cases where K-NN labels are more accurate than the initial BirdNET labels.
+
+## Clustering Labeling Plots
+<AgreementClusterStaticPlot data={data.agreement}/>
