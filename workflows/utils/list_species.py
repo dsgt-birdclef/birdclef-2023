@@ -5,7 +5,6 @@ from pathlib import Path
 import luigi
 from google.cloud import storage
 from luigi.parameter import ParameterVisibility
-from pydub import AudioSegment
 
 
 class ListSpecies(luigi.Task):
