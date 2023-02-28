@@ -25,11 +25,11 @@ class OggToMP3(luigi.Task):
 
         return x
     
-    def list_images(self):
-        images = os.listdir(self.input_path)
+    def list_tracks(self):
+        list_tracks = os.listdir(self.input_path)
 
-        return images
-        
+        return list_tracks
+
     def run(self):
         self.output_path = Path(self.output_path)
         self.input_path = Path(self.input_path)

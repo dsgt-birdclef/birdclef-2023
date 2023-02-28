@@ -6,7 +6,6 @@ import luigi
 from google.cloud import storage
 from list_species import ListSpecies
 from luigi.parameter import ParameterVisibility
-from pydub import AudioSegment
 
 
 class Pull(luigi.Task):
@@ -33,6 +32,8 @@ class Pull(luigi.Task):
     def run(self):
         self.output_path = Path(self.output_path)
         self.input_path = Path(self.input_path)
+
+        tracks = self.list_tracks()
 
         if not self.output_path.is_dir():
             self.output_path.mkdir(parents=True, exist_ok=True)
