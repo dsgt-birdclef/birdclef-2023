@@ -11,6 +11,9 @@ class OggToMP3(luigi.Task):
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
     parallelism = luigi.IntParameter(default=os.cpu_count(), significant=False)
+    dynamic_requires = luigi.Parameter(
+        default=[], visibility=ParameterVisibility.HIDDEN
+    )
 
     def output(self):
         return luigi.LocalTarget(self.output_path)

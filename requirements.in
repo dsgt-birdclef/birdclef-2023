@@ -9,6 +9,9 @@ luigi
 docker
 google-cloud-batch
 google-cloud-storage
+google-api-python-client
+httplib2
+google.auth
 
 # notebooking
 jupyterlab

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import luigi
 from google.cloud import storage
-from list_species import ListSpecies
 from luigi.parameter import ParameterVisibility
 
 
@@ -27,7 +26,7 @@ class Pull(luigi.Task):
         return tracks
 
     def requires(self):
-       return self.dynamic_requires
+        return None
 
     def run(self):
         self.output_path = Path(self.output_path)
