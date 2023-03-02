@@ -9,14 +9,24 @@
 <style>
     label {
         display: inline-block;
-        padding: 2px;
+        padding: 1px;
+    }
+    img {
+        width: 100%;
+    }
+    .selection {
+        outline: 1px solid black;
     }
 </style>
-{#each names as name}
-<label>
-    <input type="radio" bind:group={selected} name="names" value={name}> {name}
-</label>
-{/each}
+
+<div class="selection">
+    <b>Species:</b>
+    {#each names as name}
+    <label>
+        <input type="radio" bind:group={selected} name="names" value={name}> {name}
+    </label>
+    {/each}
+</div>
 
 <h5>Distances</h5>
 <img src="https://storage.googleapis.com/birdclef-2023/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{selected}/distances.png">
