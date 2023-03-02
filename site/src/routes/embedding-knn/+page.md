@@ -32,4 +32,5 @@ Generally, we're able to see a marked improvement in agreement between the ego a
 Note that quite a few points lie in the top-left quandrant, which represent cases where K-NN labels are more accurate than the initial BirdNET labels.
 
 ## Clustering Labeling Plots
+
 <AgreementClusterStaticPlot data={data.agreement}/>
