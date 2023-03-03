@@ -1,5 +1,5 @@
 -f https://download.pytorch.org/whl/cu116/torch_stable.html
--e file:./
+-e file:./[dev]
 torch
 torchvision
 torchaudio
@@ -21,9 +21,3 @@ jupyterlab
 git+https://github.com/dnanhkhoa/nb_black.git@be0c810503867abc4a5e9d05ba75a16fce57dfee
 pywin32; sys_platform == 'win32'
 pywinpty; sys_platform == 'win32'
-
-# misc
-pre-commit
-
-# testing
-pytest

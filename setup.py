@@ -22,6 +22,8 @@ setuptools.setup(
         "tqdm",
         "pyarrow",
         "torch",
+        "pytorch-lightning",
         'importlib-metadata>=0.12;python_version<"3.8"',
     ],
+    extras_require={"dev": ["pytest", "pre-commit"]},
 )
