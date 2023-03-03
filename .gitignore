@@ -1,7 +1,7 @@
 dist/
 node_modules/
 .terraform/
-data/
+/data/
 .ipynb_checkpoints/
 .DS_Store
 venv/
