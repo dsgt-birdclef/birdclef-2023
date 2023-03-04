@@ -6,31 +6,16 @@
   let api_url: string =
     "/api/v1/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1";
 
-  $: names = data.map(async (d) => {
-    if (browser) {
-      let resp = await fetch(
-        "/api/v1/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/" +
-          d["ego_primary_label"] +
-          "/distances.png"
-      );
-      if (resp.status != 404) {
-        return d["ego_primary_label"];
-      }
-    }
-  });
+  $: names = data.map(d => d["ego_primary_label"]).slice(0, 20);
 </script>
 
 <div class="selection">
   <b>Species:</b>
   {#each names as name}
-    {#await name then name}
-      {#if name != undefined}
         <label>
           <input type="radio" bind:group={selected} {name} value={name} />
           {name}
         </label>
-      {/if}
-    {/await}
   {/each}
 </div>
 
