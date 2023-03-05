@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.5.0...site-v0.6.0) (2023-03-05)
+
+
+### Features
+
+* added static plots for embedding-knn page ([#55](https://github.com/dsgt-birdclef/birdclef-2023/issues/55)) ([b49d564](https://github.com/dsgt-birdclef/birdclef-2023/commit/b49d564afc97bf6c2dafeb8fe787c29c6e9f2da7))
+
 ## [0.5.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.4.0...site-v0.5.0) (2023-02-15)
 
 

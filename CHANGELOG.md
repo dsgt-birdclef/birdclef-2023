@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.6.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.5.0...app-v0.6.0) (2023-03-05)
+
+
+### Features
+
+* add ansible for installing node18 ([655ada8](https://github.com/dsgt-birdclef/birdclef-2023/commit/655ada8a11c867542a1ef8be120e59264b0d0bcd))
+* add ansible for installing tensorflow build deps ([695d6fd](https://github.com/dsgt-birdclef/birdclef-2023/commit/695d6fd7b995c66b99a2c1f416300625abbe56df))
+* add documentation for running luigi tasks ([9a80b20](https://github.com/dsgt-birdclef/birdclef-2023/commit/9a80b20b7a858f505770ef25925793e87aa677bf))
+* Add skeleton for torch pcm dataset ([016fb4b](https://github.com/dsgt-birdclef/birdclef-2023/commit/016fb4b731832af11f92dfe22602bc823dd1820a))
+* Add tensorflow and tensorboard to the environment ([90d7e8c](https://github.com/dsgt-birdclef/birdclef-2023/commit/90d7e8c554d63f694c24c58c73811b2cc9821383))
+* added static plots for embedding-knn page ([#55](https://github.com/dsgt-birdclef/birdclef-2023/issues/55)) ([b49d564](https://github.com/dsgt-birdclef/birdclef-2023/commit/b49d564afc97bf6c2dafeb8fe787c29c6e9f2da7))
+* convert birdnet from tensorflow to onnx ([639bf7d](https://github.com/dsgt-birdclef/birdclef-2023/commit/639bf7d5460bee6c1f424b1fedc4c51bb194472a))
+* notebook for Bird net weights ([#38](https://github.com/dsgt-birdclef/birdclef-2023/issues/38)) ([a335631](https://github.com/dsgt-birdclef/birdclef-2023/commit/a3356316004dfd67697c04658a0d69d8a0dc1c82))
+* refactor documentation into smaller fragments ([4e6533d](https://github.com/dsgt-birdclef/birdclef-2023/commit/4e6533d67cf1b44785b3b5fdbe42c8e91dd35a15))
+* update requirements for python 3.10 ([a50ae73](https://github.com/dsgt-birdclef/birdclef-2023/commit/a50ae73f7be28bfd0229475241722b1335b5da66))
+* Updated Notebook for Exploring Weight Conversions ([#45](https://github.com/dsgt-birdclef/birdclef-2023/issues/45)) ([f465ab7](https://github.com/dsgt-birdclef/birdclef-2023/commit/f465ab7c6f8fbdfbb99e75dfbc7a1442b6171bd0))
+
+
+### Bug Fixes
+
+* add dependencies for running librosa ([2776af1](https://github.com/dsgt-birdclef/birdclef-2023/commit/2776af155dff0693491ab9f9fa053d7571652604))
+* link system node to conda node if exists ([8f43860](https://github.com/dsgt-birdclef/birdclef-2023/commit/8f43860a00045faaf4bfb334af3e65f16258b291))
+* prevent changelog from being included in pre-commit checks ([e3ba5a9](https://github.com/dsgt-birdclef/birdclef-2023/commit/e3ba5a91b735381ce57315bd6f29e128de7924ca))
+* use find_package in setup.py ([5cd7bb8](https://github.com/dsgt-birdclef/birdclef-2023/commit/5cd7bb8e638c6df4e3563e29e8ce66195f2c8f5a))
+
 ## [0.5.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.4.0...app-v0.5.0) (2023-02-15)
 
 
