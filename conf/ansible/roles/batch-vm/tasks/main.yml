@@ -1,0 +1,67 @@
+# tasks for bootstrapping a VM used in the batch workflow
+- name: set ssd mount point variable
+  set_fact:
+    ssd_mount_point: /mnt/ssd
+    ssd_device: /dev/sdb
+- name: check if ssd is mounted
+  become: true
+  shell: mount | grep {{ ssd_mount_point }}
+  register: ssd_mounted
+  ignore_errors: true
+- name: configure local-ssd
+  become: true
+  when: ssd_mounted.rc != 0
+  block:
+    - name: format local-ssd
+      shell: mkfs.ext4 -F {{ ssd_device }}
+    - name: create local-ssd mount point
+      file:
+        path: "{{ ssd_mount_point }}"
+        state: directory
+    - name: mount local-ssd
+      mount:
+        path: "{{ ssd_mount_point }}"
+        src: "{{ ssd_device }}"
+        fstype: ext4
+        state: mounted
+    - name: add fstab entry for local-ssd
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ ssd_device }} {{ ssd_mount_point }} ext4 defaults 0 0"
+        state: present
+        create: yes
+- name: add ssh key for git from secrets manager
+  become: true
+  block:
+    - name: create ssh key dir
+      file:
+        path: /root/.ssh
+        state: directory
+    - name: add ssh key for git
+      shell: gcloud secrets versions access latest --secret id_cloudbuild_deploy > /root/.ssh/id_rsa
+    - name: set permissions on ssh key
+      file:
+        path: /root/.ssh/id_rsa
+        mode: 0400
+    - name: add github to known hosts
+      shell: ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+- name: install default other apt dependencies
+  become: true
+  apt:
+    name:
+      - python3-pip
+      - python3-venv
+      - python-is-python3
+      - openjdk-11-jdk # for spark
+      - libffi-dev # for ansible
+      - ffmpeg # for audio processing
+      - libsndfile1 # for audio processing
+    state: present
+- name: download birdclef repo
+  git:
+    repo: git@github.com:dsgt-birdclef/birdclef-2023.git
+    dest: /opt/birdclef-2023
+- name: install python deps
+  pip:
+    requirements: requirements.txt
+    chdir: /opt/birdclef-2023
