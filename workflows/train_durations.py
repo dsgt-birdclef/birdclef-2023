@@ -81,12 +81,14 @@ class TrainDurationsWorkflow(luigi.WrapperTask):
                 birdclef_root_path=tmp_birdclef_root_path,
                 output_path=tmp_output_path,
                 parallelism=self.parallelism,
+                dynamic_requires=[download_task],
             )
             yield train_durations
 
             upload_task = GSUtilRsyncTask(
                 input_path=tmp_output_path,
                 output_path=self.output_path,
+                dynamic_requires=[train_durations],
             )
             yield upload_task
 
