@@ -1,35 +1,11 @@
 # tasks for bootstrapping a VM used in the batch workflow
-- name: set ssd mount point variable
-  set_fact:
-    ssd_mount_point: /mnt/ssd
-    ssd_device: /dev/sdb
-- name: check if ssd is mounted
-  become: true
-  shell: mount | grep {{ ssd_mount_point }}
-  register: ssd_mounted
-  ignore_errors: true
-- name: configure local-ssd
-  become: true
-  when: ssd_mounted.rc != 0
-  block:
-    - name: format local-ssd
-      shell: mkfs.ext4 -F {{ ssd_device }}
-    - name: create local-ssd mount point
-      file:
-        path: "{{ ssd_mount_point }}"
-        state: directory
-    - name: mount local-ssd
-      mount:
-        path: "{{ ssd_mount_point }}"
-        src: "{{ ssd_device }}"
-        fstype: ext4
-        state: mounted
-    - name: add fstab entry for local-ssd
-      lineinfile:
-        path: /etc/fstab
-        line: "{{ ssd_device }} {{ ssd_mount_point }} ext4 defaults 0 0"
-        state: present
-        create: yes
+- name: copy entrypoint script
+  copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+    mode: 0755
+  with_items:
+    - usr/local/bin/run-birdclef
 - name: add ssh key for git from secrets manager
   become: true
   block:

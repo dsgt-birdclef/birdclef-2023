@@ -42,14 +42,8 @@ resource "google_compute_instance_template" "batch-cpu" {
     source_image = "ubuntu-os-cloud/ubuntu-2204-lts"
     auto_delete  = true
     boot         = true
-    disk_size_gb = 25
+    disk_size_gb = 250
     type         = "pd-ssd"
-  }
-  disk {
-    disk_type    = "local-ssd"
-    auto_delete  = true
-    type         = "SCRATCH"
-    disk_size_gb = 375
   }
   network_interface {
     network = "default"
