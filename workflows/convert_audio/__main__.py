@@ -49,8 +49,7 @@ def list_species(birdclef_root_path):
     storage_client = storage.Client("birdclef-2023")
 
     bucket = storage_client.get_bucket("birdclef-2023")
-    # Note: Client.list_blobs requires at least package version 1.17.0.
-    # Use input path "data/raw/birdclef-2022/train_audio/species"
+
     species = bucket.list_blobs(prefix=birdclef_root_path)
 
     species_list = []
