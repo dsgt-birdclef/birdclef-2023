@@ -1,6 +1,28 @@
 ---
 # NOTE: it might be better to build a packer image, but this will do too
 
+# https://docs.docker.com/engine/install/ubuntu/
+- name: install docker
+  become: yes
+  block:
+    - name: download key for docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: add docker apt repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+    - name: install docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
 - name: install gh tool
   become: yes
@@ -57,35 +79,17 @@
       apt:
         name: nodejs
         state: present
-    # NOTE: deep learning image comes with conda, we're going to replace the node version
-    - name: check conda node bin
-      stat:
-        path: /opt/conda/bin/node
-      register: conda_node_bin
-    - name: link node to conda
-      when: conda_node_bin.stat.exists
-      block:
-        - name: remove conda node bin
-          file:
-            path: /opt/conda/bin/node
-            state: absent
-          with_items:
-            - node
-            - npm
-        - name: link system node to conda
-          file:
-            src: /usr/bin/{{ item }}
-            dest: /opt/conda/bin/{{ item }}
-            state: link
-          with_items:
-            - node
-            - npm
 - name: install default other apt dependencies
   become: yes
   apt:
     name:
+      - python3-pip
+      - python3-venv
+      - python-is-python3
       - openjdk-11-jdk # for spark
       - libffi-dev # for ansible
+      - ffmpeg # for audio processing
+      - libsndfile1 # for audio processing
     state: present
 - name: upgrade pip
   become: yes
@@ -102,3 +106,42 @@
       - ansible
       - pre-commit
       - pip-tools
+- name: install nvidia drivers and cuda
+  become: yes
+  block:
+    - name: install nvidia drivers
+      apt:
+        name:
+          - nvidia-driver-525
+          - nvidia-utils-525
+        state: present
+    - name: install cuda
+      apt:
+        name:
+          - nvidia-cuda-toolkit
+        state: present
+    # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+    - name: download key for nvidia docker
+      apt_key:
+        url: https://nvidia.github.io/libnvidia-container/gpgkey
+        state: present
+    - name: add nvidia docker repo
+      apt_repository:
+        repo: deb https://nvidia.github.io/{{ item }}/ubuntu22.04/amd64/ /
+        state: present
+        filename: "{{ item }}"
+      with_items:
+        - libnvidia-container
+        - nvidia-container-runtime
+        - nvidia-docker
+    - name: install nvidia docker packages
+      apt:
+        name:
+          - nvidia-container-toolkit
+        state: present
+    - name: configure nvidia docker
+      shell: nvidia-ctk runtime configure --runtime=docker
+    - name: restart docker
+      service:
+        name: docker
+        state: restarted

@@ -8,5 +8,6 @@ hostnames:
   - name
 filters:
   - labels.app=dev
+  - labels.version=ubuntu-2204
 compose:
   ansible_host: networkInterfaces[0].accessConfigs[0].natIP

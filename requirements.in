@@ -1,8 +1,15 @@
 -f https://download.pytorch.org/whl/cu116/torch_stable.html
--e file:./
+-e file:./[dev]
 torch
 torchvision
 torchaudio
+
+# tensorflow to pytorch conversion
+tensorflow
+tensorboard
+tf2onnx
+onnx
+onnxruntime
 
 # workflow management
 luigi

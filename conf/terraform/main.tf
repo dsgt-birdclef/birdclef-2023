@@ -85,3 +85,37 @@ resource "google_storage_bucket_iam_binding" "default-public" {
 output "bucket_name" {
   value = google_storage_bucket.default.name
 }
+
+// we create a new policy that allows developers to be editor, compute admin, and storage admin
+locals {
+  // members in the crypto module
+  team_info = nonsensitive({
+    for entry in yamldecode(data.sops_file.default["team_info_yaml"].raw).members :
+    entry.username => entry.email
+  })
+  members = {
+    for username, email in local.team_info :
+    username => "user:${email}"
+  }
+}
+
+resource "google_project_iam_member" "editor" {
+  for_each = local.members
+  project  = local.project_id
+  role     = "roles/editor"
+  member   = each.value
+}
+
+resource "google_project_iam_member" "compute-admin" {
+  for_each = local.members
+  project  = local.project_id
+  role     = "roles/compute.admin"
+  member   = each.value
+}
+
+resource "google_project_iam_member" "storage-admin" {
+  for_each = local.members
+  project  = local.project_id
+  role     = "roles/storage.admin"
+  member   = each.value
+}

@@ -1,7 +1,7 @@
 dist/
 node_modules/
 .terraform/
-data/
+/data/
 .ipynb_checkpoints/
 .DS_Store
 venv/
@@ -10,3 +10,4 @@ venv/
 dask-worker-space/
 __pycache__/
 .env
+.decrypted*
