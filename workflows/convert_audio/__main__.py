@@ -10,7 +10,7 @@ from workflows.utils.push import Push
 
 
 class ConvertAudioTask(luigi.WrapperTask):
-    """Wrapper around the entire DAG."""
+    """Wrapper around the entire DAG to convert .ogg files to .mp3"""
 
     birdclef_root_path = luigi.Parameter()
     intermediate_path = luigi.Parameter()
