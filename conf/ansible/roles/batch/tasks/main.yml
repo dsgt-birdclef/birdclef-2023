@@ -41,3 +41,4 @@
   pip:
     requirements: requirements.txt
     chdir: /opt/birdclef-2023
+    extra_args: "--ignore-installed"
