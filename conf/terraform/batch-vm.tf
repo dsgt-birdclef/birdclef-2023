@@ -25,7 +25,7 @@ resource "google_compute_instance_template" "batch-cpu" {
   machine_type = "n2-standard-8"
   labels = {
     app     = "batch-cpu"
-    version = "ubuntu-2204"
+    version = "birdclef-cloud-batch"
   }
   metadata_startup_script = <<-EOT
     #!/bin/bash
@@ -39,7 +39,7 @@ resource "google_compute_instance_template" "batch-cpu" {
   EOT
 
   disk {
-    source_image = "ubuntu-os-cloud/ubuntu-2204-lts"
+    source_image = "birdclef-2023/birdclef-cloud-batch"
     auto_delete  = true
     boot         = true
     disk_size_gb = 250
