@@ -62,7 +62,7 @@ class BirdNetTask(luigi.WrapperTask):
 
 
 if __name__ == "__main__":
-    n_threads = 16
+    n_threads = os.cpu_count()
     luigi.build(
         [
             BirdNetTask(
