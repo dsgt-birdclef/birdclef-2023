@@ -26,10 +26,19 @@ class Push(luigi.Task):
         bucket = storage_client.get_bucket("birdclef-2023")
         # Note: Client.list_blobs requires at least package version 1.17.0.
         # Use input path "data/raw/birdclef-2022/train_audio/species"
-        blob = bucket.blob(filename)
-        blob.upload_from_filename(os.join.path(self.input_path / filename))
+        blob = bucket.blob(os.path.join(self.output_path, filename))
+        blob.upload_from_filename(os.path.join(self.input_path, filename))
 
         return
+
+    def create_success_file(self):
+        storage_client = storage.Client("birdclef-2023")
+
+        bucket = storage_client.get_bucket("birdclef-2023")
+        # Note: Client.list_blobs requires at least package version 1.17.0.
+        # Use input path "data/raw/birdclef-2022/train_audio/species"
+        blob = bucket.blob(os.path.join(self.output_path, "_SUCCESS"))
+        blob.upload_from_string("")
 
     def list_tracks(self):
         list_tracks = os.listdir(self.input_path)
@@ -40,19 +49,10 @@ class Push(luigi.Task):
         return self.dynamic_requires
 
     def run(self):
-        self.output_path = Path(self.output_path)
-        self.input_path = Path(self.input_path)
-
         tracks = self.list_tracks()
         for track_file in tracks:
-            name = str(track_file.name).split("/")[-1]
+            name = str(track_file).split("/")[-1]
 
             self.upload_track(name)
 
-        storage_client = storage.Client("birdclef-2023")
-
-        bucket = storage_client.get_bucket("birdclef-2023")
-        # Note: Client.list_blobs requires at least package version 1.17.0.
-        # Use input path "data/raw/birdclef-2022/train_audio/species"
-        blob = bucket.blob("_SUCCESS")
-        blob.upload_from_filename(self.input_path / filename)
+        self.create_success_file()

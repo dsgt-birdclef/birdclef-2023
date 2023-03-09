@@ -5,6 +5,7 @@ from pathlib import Path
 import luigi
 from google.cloud import storage
 from luigi.parameter import ParameterVisibility
+from pydub import AudioSegment
 
 
 class OggToMP3(luigi.Task):
@@ -35,7 +36,7 @@ class OggToMP3(luigi.Task):
         self.output_path = Path(self.output_path)
         self.input_path = Path(self.input_path)
 
-        tracks = self.list_images()
+        tracks = self.list_tracks()
 
         if not self.output_path.is_dir():
             self.output_path.mkdir(parents=True, exist_ok=True)
