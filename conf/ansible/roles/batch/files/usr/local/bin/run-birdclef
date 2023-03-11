@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # checkout a specific branch of the birdclef repo and run a script
-
 set -eu
 cd /opt/birdclef-2023
 

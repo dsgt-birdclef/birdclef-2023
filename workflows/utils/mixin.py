@@ -3,7 +3,7 @@ from luigi.parameter import ParameterVisibility
 
 
 class DynamicRequiresMixin:
-    dynamic_requires = luigi.Parameter(
+    dynamic_requires = luigi.ListParameter(
         default=[], visibility=ParameterVisibility.HIDDEN
     )
 

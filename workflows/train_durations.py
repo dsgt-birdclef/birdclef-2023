@@ -7,9 +7,9 @@ import librosa
 import luigi
 import pandas as pd
 from tqdm import tqdm
-from workflow.utils.rsync import GSUtilRsyncTask
 
 from workflows.utils.mixin import DynamicRequiresMixin
+from workflows.utils.rsync import GSUtilRsyncTask
 
 
 def read_path(path: Path) -> dict:
@@ -54,6 +54,7 @@ class TrainDurationsWorkflow(luigi.WrapperTask):
         # we're only wrapping the task here
         tmp_path = Path(tempfile.mkdtemp())
         tmp_birdclef_root_path = tmp_path / "audio_root"
+        tmp_birdclef_root_path.mkdir(parents=True, exist_ok=True)
         tmp_output_path = tmp_path / "train_durations.parquet"
 
         download_task = GSUtilRsyncTask(
