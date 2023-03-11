@@ -4,7 +4,6 @@ from pathlib import Path
 
 import luigi
 from google.cloud import storage
-from luigi.parameter import ParameterVisibility
 
 
 class Pull(luigi.Task):
