@@ -75,7 +75,7 @@ class TrainDurationsWorkflow(luigi.WrapperTask):
             input_path=tmp_output_path.as_posix(),
             output_path=self.output_path,
             is_dir=False,
-            dynamic_requires=[train_durations],
+            dynamic_requires=[download_task, train_durations],
         )
         yield upload_task
 
