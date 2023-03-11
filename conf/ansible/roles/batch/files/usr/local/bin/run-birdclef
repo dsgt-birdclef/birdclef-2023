@@ -7,6 +7,7 @@ cd /opt/birdclef-2023
 # read the branch from the first argument
 rev=${1:?branch or revision is required}
 git checkout $rev
+git pull
 
 # run the rest of the arguments as a bash command
 shift

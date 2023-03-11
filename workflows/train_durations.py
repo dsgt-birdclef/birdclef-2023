@@ -53,10 +53,17 @@ class TrainDurations(luigi.Task, DynamicRequiresMixin):
 class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
+    is_dir = luigi.BoolParameter(default=True)
     capture_output = True
 
     def program_args(self):
-        return f"gsutil -m rsync -r {self.input_path} {self.output_path}".split()
+        in_path = Path(self.input_path)
+        out_path = Path(self.output_path)
+
+        if self.is_dir:
+            return f"gsutil -m rsync -r {in_path}/ {out_path}/".split()
+        else:
+            return f"gsutil -m rsync -r {in_path} {out_path}".split()
 
 
 class TrainDurationsWorkflow(luigi.WrapperTask):
@@ -73,21 +80,22 @@ class TrainDurationsWorkflow(luigi.WrapperTask):
 
             download_task = GSUtilRsyncTask(
                 input_path=self.birdclef_root_path,
-                output_path=tmp_birdclef_root_path,
+                output_path=tmp_birdclef_root_path.as_posix(),
             )
             yield download_task
 
             train_durations = TrainDurations(
-                birdclef_root_path=tmp_birdclef_root_path,
-                output_path=tmp_output_path,
+                birdclef_root_path=tmp_birdclef_root_path.as_posix(),
+                output_path=tmp_output_path.as_posix(),
                 parallelism=self.parallelism,
                 dynamic_requires=[download_task],
             )
             yield train_durations
 
             upload_task = GSUtilRsyncTask(
-                input_path=tmp_output_path,
+                input_path=tmp_output_path.as_posix(),
                 output_path=self.output_path,
+                is_dir=False,
                 dynamic_requires=[train_durations],
             )
             yield upload_task
