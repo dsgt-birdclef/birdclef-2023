@@ -57,8 +57,8 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
     capture_output = True
 
     def program_args(self):
-        in_path = Path(self.input_path)
-        out_path = Path(self.output_path)
+        in_path = self.input_path.strip("/")
+        out_path = self.output_path.strip("/")
 
         if self.is_dir:
             return f"gsutil -m rsync -r {in_path}/ {out_path}/".split()
