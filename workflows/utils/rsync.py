@@ -16,10 +16,11 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
         out_path = self.output_path.rstrip("/")
 
         if self.is_dir:
-            return (
-                f"bash -c 'gsutil -m rsync -r {in_path}/ {out_path}/ &&"
-                f"touch {out_path}/_SUCCESS'"
-            ).split()
+            return [
+                "bash",
+                "-c",
+                f"gsutil -m rsync -r {in_path}/ {out_path}/ && touch {out_path}/_SUCCESS",
+            ]
         else:
             return f"gsutil -m rsync -r {in_path} {out_path}".split()
 
