@@ -57,13 +57,20 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
     capture_output = True
 
     def program_args(self):
-        in_path = self.input_path.strip("/")
-        out_path = self.output_path.strip("/")
+        in_path = self.input_path.rstrip("/")
+        out_path = self.output_path.rstrip("/")
 
         if self.is_dir:
             return f"gsutil -m rsync -r {in_path}/ {out_path}/".split()
         else:
             return f"gsutil -m rsync -r {in_path} {out_path}".split()
+
+    def output(self):
+        is_gs_path = self.output_path.startswith("gs://")
+        if is_gs_path:
+            return luigi.contrib.gcs.GCSClientTarget(self.output_path)
+        else:
+            return luigi.LocalTarget(self.output_path)
 
 
 class TrainDurationsWorkflow(luigi.WrapperTask):
@@ -72,33 +79,33 @@ class TrainDurationsWorkflow(luigi.WrapperTask):
     parallelism = luigi.IntParameter(default=os.cpu_count())
 
     def requires(self):
-        # create a temporary path to download the data
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_path = Path(tmp_dir)
-            tmp_birdclef_root_path = tmp_path / "birdclef-2022"
-            tmp_output_path = tmp_path / "train_durations.parquet"
+        # create a temporary path to download the data, make it persistent since
+        # we're only wrapping the task here
+        tmp_path = Path(tempfile.mkdtemp())
+        tmp_birdclef_root_path = tmp_path / "audio_root"
+        tmp_output_path = tmp_path / "train_durations.parquet"
 
-            download_task = GSUtilRsyncTask(
-                input_path=self.birdclef_root_path,
-                output_path=tmp_birdclef_root_path.as_posix(),
-            )
-            yield download_task
+        download_task = GSUtilRsyncTask(
+            input_path=self.birdclef_root_path,
+            output_path=tmp_birdclef_root_path.as_posix(),
+        )
+        yield download_task
 
-            train_durations = TrainDurations(
-                birdclef_root_path=tmp_birdclef_root_path.as_posix(),
-                output_path=tmp_output_path.as_posix(),
-                parallelism=self.parallelism,
-                dynamic_requires=[download_task],
-            )
-            yield train_durations
+        train_durations = TrainDurations(
+            birdclef_root_path=tmp_birdclef_root_path.as_posix(),
+            output_path=tmp_output_path.as_posix(),
+            parallelism=self.parallelism,
+            dynamic_requires=[download_task],
+        )
+        yield train_durations
 
-            upload_task = GSUtilRsyncTask(
-                input_path=tmp_output_path.as_posix(),
-                output_path=self.output_path,
-                is_dir=False,
-                dynamic_requires=[train_durations],
-            )
-            yield upload_task
+        upload_task = GSUtilRsyncTask(
+            input_path=tmp_output_path.as_posix(),
+            output_path=self.output_path,
+            is_dir=False,
+            dynamic_requires=[train_durations],
+        )
+        yield upload_task
 
 
 if __name__ == "__main__":
