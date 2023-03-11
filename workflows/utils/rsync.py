@@ -16,7 +16,7 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
         out_path = self.output_path.rstrip("/")
 
         if self.is_dir:
-            return f"gsutil -m rsync -r {in_path}/ {out_path}/".split()
+            return f"gsutil -m rsync -r {in_path}/ {out_path}/ && touch {out_path}/_SUCCESS".split()
         else:
             return f"gsutil -m rsync -r {in_path} {out_path}".split()
 
@@ -25,4 +25,4 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
         if is_gs_path:
             return GCSTarget(self.output_path)
         else:
-            return luigi.LocalTarget(self.output_path)
+            return luigi.LocalTarget(f"{self.output_path}/_SUCCESS")

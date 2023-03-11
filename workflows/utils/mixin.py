@@ -9,7 +9,7 @@ class TaskListParameter(luigi.Parameter):
 
 
 class DynamicRequiresMixin:
-    dynamic_requires = luigi.TaskListParameter(
+    dynamic_requires = TaskListParameter(
         default=[], visibility=ParameterVisibility.HIDDEN
     )
 
