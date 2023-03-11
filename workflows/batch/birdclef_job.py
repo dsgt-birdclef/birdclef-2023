@@ -70,7 +70,7 @@ def parse_args():
     parser.add_argument("--project_id", type=str, default="birdclef-2023")
     parser.add_argument("--region", type=str, default="us-central1")
     parser.add_argument("--template_link", type=str, default="batch-cpu-template")
-    parser.add_argument("--branch", type=str, default="main")
+    parser.add_argument("--branch", type=str, required=True)
     parser.add_argument("--cmd", nargs=REMAINDER, required=True)
     return parser.parse_args()
 

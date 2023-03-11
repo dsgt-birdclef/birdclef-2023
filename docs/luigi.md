@@ -49,3 +49,19 @@ luigi \
 ```
 
 Then you can visit https://luigi.dsgt-kaggle.org to view the luigi dashboard.
+
+## cloud batch
+
+We can run luigi tasks using cloud batch.
+Wrap your command and run it via the birdclef_job script:
+
+```bash
+python -m workflows.batch.birdclef_job \
+    --branch cloud-batch \
+    --cmd \
+        luigi \
+            --module workflows.train_durations TrainDurationsWorkflow \
+            --birdclef-root-path gs://birdclef-2023/data/raw/birdclef-2022/ \
+            --output-path gs://birdclef-2023/data/processed/birdclef-2022/train_durations_v2.parquet \
+            --scheduler-host luigi.us-central1-a.c.birdclef-2023.internal
+```

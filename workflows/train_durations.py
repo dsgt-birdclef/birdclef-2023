@@ -56,7 +56,7 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
     capture_output = True
 
     def program_args(self):
-        return f"gsutil -m -r rsync {self.input_path} {self.output_path}".split()
+        return f"gsutil -m rsync -r {self.input_path} {self.output_path}".split()
 
 
 class TrainDurationsWorkflow(luigi.WrapperTask):
