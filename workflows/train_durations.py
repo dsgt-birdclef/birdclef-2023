@@ -7,6 +7,7 @@ import librosa
 import luigi
 import pandas as pd
 from luigi.contrib.external_program import ExternalProgramTask
+from luigi.contrib.gcs import GCSTarget
 from luigi.parameter import ParameterVisibility
 from tqdm import tqdm
 
@@ -18,7 +19,9 @@ def read_path(path: Path) -> dict:
 
 
 class DynamicRequiresMixin:
-    dynamic_requires = luigi.Parameter([], visibility=ParameterVisibility.HIDDEN)
+    dynamic_requires = luigi.Parameter(
+        default=[], visibility=ParameterVisibility.HIDDEN
+    )
 
     def requires(self):
         return self.dynamic_requires
@@ -68,7 +71,7 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
     def output(self):
         is_gs_path = self.output_path.startswith("gs://")
         if is_gs_path:
-            return luigi.contrib.gcs.GCSClientTarget(self.output_path)
+            return GCSTarget(self.output_path)
         else:
             return luigi.LocalTarget(self.output_path)
 
