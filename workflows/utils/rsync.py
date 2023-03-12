@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import luigi
 from luigi.contrib.external_program import ExternalProgramTask
 from luigi.contrib.gcs import GCSTarget
 
 from workflows.utils.mixin import DynamicRequiresMixin
+
+from .gcs import single_file_target
 
 
 class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
@@ -16,20 +20,19 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
         out_path = self.output_path.rstrip("/")
 
         if self.is_dir:
+            Path(out_path).mkdir(parents=True, exist_ok=True)
             return [
                 "bash",
-                "-c",
-                f"gsutil -m rsync -r {in_path}/ {out_path}/ && touch {out_path}/_SUCCESS",
+                "-ce",
+                (
+                    f"gsutil -m rsync -r {in_path}/ {out_path}/ && "
+                    f"touch {out_path}/_SUCCESS"
+                ),
             ]
         else:
-            return f"gsutil -m rsync -r {in_path} {out_path}".split()
+            return f"gsutil -m cp {in_path} {out_path}".split()
 
     def output(self):
-        is_gs_path = self.output_path.startswith("gs://")
-        if is_gs_path:
-            return GCSTarget(self.output_path)
-        else:
-            if self.is_dir:
-                return luigi.LocalTarget(f"{self.output_path}/_SUCCESS")
-            else:
-                return luigi.LocalTarget(self.output_path)
+        out_path = self.output_path.rstrip("/")
+        target = f"{out_path}/_SUCCESS" if self.is_dir else out_path
+        return single_file_target(target)
