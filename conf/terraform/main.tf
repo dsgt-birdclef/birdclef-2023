@@ -52,6 +52,13 @@ resource "google_artifact_registry_repository_iam_member" "default" {
   member     = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
 
+// grant the compute engine default service account batch agent reporter
+resource "google_project_iam_member" "batch-agent-reporter" {
+  project = local.project_id
+  role    = "roles/batch.agentReporter"
+  member  = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
 resource "google_storage_bucket" "default" {
   name     = local.project_id
   location = "US"
