@@ -8,6 +8,9 @@ rev=${1:?branch or revision is required}
 git checkout $rev
 git pull
 
+# install dependencies
+pip install -r requirements.txt
+
 # run the rest of the arguments as a bash command
 shift
 exec "$@"

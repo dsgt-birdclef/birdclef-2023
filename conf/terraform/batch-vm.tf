@@ -32,10 +32,10 @@ resource "google_compute_instance_template" "batch-cpu" {
     set -ex
     apt-get update
     apt-get install -y python3-pip
-    pip3 install ansible
+    pip3 install ansible gsutil
     mkdir -p /opt/ansible
     gsutil rsync -r gs://${google_storage_bucket.ansible.name}/ /opt/ansible/
-    ansible-playbook -i localhost /opt/ansible/batch-vm.yml
+    ansible-playbook -i localhost /opt/ansible/batch.yml -vv --tags "batch"
   EOT
 
   disk {
