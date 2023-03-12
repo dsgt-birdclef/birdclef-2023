@@ -9,7 +9,7 @@ git checkout $rev
 git pull
 
 # install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt --ignore-installed
 
 # run the rest of the arguments as a bash command
 shift

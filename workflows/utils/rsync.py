@@ -30,7 +30,7 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
                 ),
             ]
         else:
-            return f"gsutil -m cp {in_path} {out_path}".split()
+            return ["bash", "-ce", f"gsutil -m cp {in_path} {out_path}"]
 
     def output(self):
         out_path = self.output_path.rstrip("/")
