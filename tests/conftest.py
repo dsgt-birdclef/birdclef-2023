@@ -11,7 +11,7 @@ def bird_species():
 
 
 @pytest.fixture(scope="session")
-def train_root(tmp_path_factory, bird_species):
+def train_audio(tmp_path_factory, bird_species):
     tmp_path = tmp_path_factory.mktemp("train_audio")
     sr = 32000
     for i, bird in enumerate(bird_species):
@@ -29,7 +29,7 @@ def train_root(tmp_path_factory, bird_species):
 
 
 @pytest.fixture(scope="session")
-def birdclef_root(tmp_path_factory, train_root):
+def birdclef_root(tmp_path_factory, train_audio):
     tmp_path = tmp_path_factory.mktemp("birdclef")
-    shutil.copytree(train_root, tmp_path / train_root.name)
+    shutil.copytree(train_audio, tmp_path / "train_audio")
     return tmp_path

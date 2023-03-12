@@ -20,7 +20,7 @@ def test_train_durations_workflow_luigi_build(tmp_path, birdclef_root):
         output_path=out_path.as_posix(),
         parallelism=1,
     )
-    res = luigi.build([task], local_scheduler=True, workers=4, detailed_summary=True)
+    res = luigi.build([task], local_scheduler=True, workers=1, detailed_summary=True)
     assert res.status == luigi.execution_summary.LuigiStatusCode.SUCCESS
     download_path = tmp_path / "raw" / birdclef_root.name
     assert (download_path / "_SUCCESS").exists()
