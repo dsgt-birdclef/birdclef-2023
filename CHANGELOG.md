@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.6.0...app-v0.7.0) (2023-03-12)
+
+
+### Features
+
+* Add solutions to assessment notebook ([#57](https://github.com/dsgt-birdclef/birdclef-2023/issues/57)) ([a6e5e77](https://github.com/dsgt-birdclef/birdclef-2023/commit/a6e5e7799e5f2245e85b747d59b6cb5617131553))
+
 ## [0.6.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.5.0...app-v0.6.0) (2023-03-05)
 
 
