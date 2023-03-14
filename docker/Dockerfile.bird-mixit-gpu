@@ -2,7 +2,7 @@
 FROM tensorflow/tensorflow:latest-gpu
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg curl unzip
+    apt-get install -y --no-install-recommends ffmpeg curl unzip git
 
 ADD vendor/sound-separation /app
 
@@ -16,3 +16,5 @@ RUN curl $MODEL_CHECKPOINT_URL --output /tmp/model.zip && \
 ADD scripts /app/scripts
 
 WORKDIR /app
+
+RUN git clone https://github.com/google-research/sound-separation sound_separation
