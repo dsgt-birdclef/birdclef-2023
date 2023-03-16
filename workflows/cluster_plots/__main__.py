@@ -1,4 +1,5 @@
 import os
+import json
 
 import luigi
 from plotting import ClusterPlottingTask
@@ -16,32 +17,25 @@ from birdclef.utils import get_spark
 
 
 class ClusterPlotTask(luigi.WrapperTask):
-    path_prefix = luigi.Parameter()
+    output_path = luigi.Parameter()
 
     def requires(self):
-        spark = get_spark(memory="16g")
-        df = spark.read.parquet(
-            "../data/processed/birdclef-2022/birdnet-embeddings-with-neighbors/v1"
-        )
-        labeled_neighborhood = get_knn_labels(df).cache()
-
-        for i in range(len(df)):
+        agreement = open("../data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json")
+        agreement = json.loads(agreement.read())
+        for i in range(3):
             cluster_plots = ClusterPlottingTask(
-                path_prefix=self.path_prefix,
-                df=df,
-                labeled_neighborhood=labeled_neighborhood,
+                output_path=self.output_path,
                 index=i,
             )
             yield cluster_plots
 
 
 if __name__ == "__main__":
-    n_threads = 4
     luigi.build(
         [
             ClusterPlotTask(
-                path_prefix="../data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
+                output_path="../data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
             ),
         ],
-        workers=os.cpu_count() // n_threads,
+        workers=2,
     )
