@@ -1,0 +1,7 @@
+- hosts: localhost
+  become: true
+  roles:
+    - name: dev
+      tags: dev
+    - name: batch
+      tags: batch

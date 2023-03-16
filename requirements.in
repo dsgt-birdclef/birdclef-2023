@@ -15,9 +15,23 @@ onnxruntime
 luigi
 docker
 google-cloud-batch
+google-cloud-storage
+google-api-python-client
+httplib2
+google-auth
+google-api-python-client
 
 # notebooking
 jupyterlab
 git+https://github.com/dnanhkhoa/nb_black.git@be0c810503867abc4a5e9d05ba75a16fce57dfee
 pywin32; sys_platform == 'win32'
 pywinpty; sys_platform == 'win32'
+
+# audio conversion
+pydub
+
+# misc
+pre-commit
+
+# testing
+pytest

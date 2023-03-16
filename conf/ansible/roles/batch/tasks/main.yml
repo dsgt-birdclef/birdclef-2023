@@ -1,0 +1,44 @@
+# tasks for bootstrapping a VM used in the batch workflow
+- name: copy entrypoint script
+  copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+    mode: 0755
+  with_items:
+    - usr/local/bin/run-birdclef
+- name: add ssh key for git from secrets manager
+  become: true
+  block:
+    - name: create ssh key dir
+      file:
+        path: /root/.ssh
+        state: directory
+    - name: add ssh key for git
+      shell: gcloud secrets versions access latest --secret id_cloudbuild_deploy > /root/.ssh/id_rsa
+    - name: set permissions on ssh key
+      file:
+        path: /root/.ssh/id_rsa
+        mode: 0400
+    - name: add github to known hosts
+      shell: ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+- name: install default other apt dependencies
+  become: true
+  apt:
+    name:
+      - python3-pip
+      - python3-venv
+      - python-is-python3
+      - openjdk-11-jdk # for spark
+      - libffi-dev # for ansible
+      - ffmpeg # for audio processing
+      - libsndfile1 # for audio processing
+    state: present
+- name: download birdclef repo
+  git:
+    repo: git@github.com:dsgt-birdclef/birdclef-2023.git
+    dest: /opt/birdclef-2023
+- name: install python deps
+  pip:
+    requirements: requirements.txt
+    chdir: /opt/birdclef-2023
+    extra_args: "--ignore-installed"
