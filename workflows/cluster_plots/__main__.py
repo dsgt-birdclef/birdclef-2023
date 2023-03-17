@@ -3,10 +3,9 @@ import json
 
 import luigi
 from google.cloud import storage
-from plotting import ClusterPlottingTask
+from plotting import ClusterPlotAllTasks
 
 from workflows.utils.pull import Pull
-from workflows.utils.push import Push
 
 
 from birdclef.knn_labels import (
@@ -21,9 +20,9 @@ from birdclef.knn_labels import (
 from birdclef.utils import get_spark
 
 
-class ClusterPlotTask(luigi.WrapperTask):
+class ClusterPlotTaskWrapper(luigi.WrapperTask):
     output_path = luigi.Parameter()
-    species_list = luigi.Parameter()
+    list_species = luigi.Parameter()
 
     def requires(self):
         pull_data = Pull(
@@ -33,38 +32,25 @@ class ClusterPlotTask(luigi.WrapperTask):
         )
         yield pull_data
 
-        for i in range(3):
-            cluster_plots = ClusterPlottingTask(
-                output_path=self.output_path,
-                index=i,
-            )
-            yield cluster_plots
-        
+        yield ClusterPlotAllTasks(
+            output_path=self.output_path,
+            total_cnt = len(species_list),
+        )
+        # yield cluster_plot_all_task
 
-def list_species(birdclef_root_path):
-    storage_client = storage.Client("birdclef-2023")
-
-    bucket = storage_client.get_bucket("birdclef-2023")
-
-    species = bucket.list_blobs(prefix=birdclef_root_path)
-
-    species_list = []
-    for blob in species:
-        name = blob.name
-        name = name.replace(birdclef_root_path + "/", "")
-        name = name.split("/")[0]
-        species_list.append(name.strip())
-
-    return list(set(species_list))
-
+def list_species():
+    f = open("/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json")
+    agreement = json.load(f)
+    return agreement
 if __name__ == "__main__":
+    species_list = [t['ego_primary_label'] for t in list_species()]
     luigi.build(
         [
-            ClusterPlotTask(
-                species_list = list_species("data/raw/birdclef-2022/train_audio"),
-                output_path="../data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
+            ClusterPlotTaskWrapper(
+                output_path="/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
+                list_species = species_list,
             ),
         ],
-        scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+        # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
         workers=2,
     )
