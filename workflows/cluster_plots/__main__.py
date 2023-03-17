@@ -3,7 +3,7 @@ import json
 
 import luigi
 from google.cloud import storage
-from plotting import ClusterPlotAllTasks
+from .plotting import ClusterPlotAllTasks
 
 from workflows.utils.pull import Pull
 
@@ -34,7 +34,7 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
 
         yield ClusterPlotAllTasks(
             output_path=self.output_path,
-            total_cnt = len(species_list),
+            total_cnt = len(self.list_species),
         )
         # yield cluster_plot_all_task
 
@@ -42,6 +42,7 @@ def list_species():
     f = open("/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json")
     agreement = json.load(f)
     return agreement
+
 if __name__ == "__main__":
     species_list = [t['ego_primary_label'] for t in list_species()]
     luigi.build(
