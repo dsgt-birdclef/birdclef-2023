@@ -1,9 +1,7 @@
+from pathlib import Path
+
 import luigi
 import matplotlib.pyplot as plt
-
-from pathlib import Path
-from workflows.utils.push import Push
-
 
 from birdclef.knn_labels import (
     compute_embedding_2d,
@@ -15,6 +13,7 @@ from birdclef.knn_labels import (
     write_plots_to_disk,
 )
 from birdclef.utils import get_spark
+from workflows.utils.push import Push
 
 
 class ClusterPlotAllTasks(luigi.WrapperTask):
@@ -39,6 +38,7 @@ class ClusterPlotAllTasks(luigi.WrapperTask):
                 pdf=pdf,
                 name=name,
             )
+
 
 class ClusterPlotSingleSpecies(luigi.WrapperTask):
     path = luigi.Parameter()
@@ -65,10 +65,10 @@ class ClusterPlotSingleSpecies(luigi.WrapperTask):
         yield knn_birdnet_label
 
         push_data = Push(
-            input_path = f"/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{self.name}",
-            output_path = f"data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{self.name}",
+            input_path=f"/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{self.name}",
+            output_path=f"data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{self.name}",
             parallelism=1,
-            dynamic_requires=[distance, ego_birdnet_label, knn_birdnet_label]
+            dynamic_requires=[distance, ego_birdnet_label, knn_birdnet_label],
         )
         yield push_data
 
@@ -79,11 +79,12 @@ class DistancePlotTask(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.path / "distances.png")
-    
+
     def run(self):
         plot_distances(self.pdf)
         plt.savefig(f"{self.path}/distances.png")
         plt.close()
+
 
 class EgoBirdnetLabelTask(luigi.Task):
     path = luigi.Parameter()
@@ -91,12 +92,13 @@ class EgoBirdnetLabelTask(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.path / "ego_birdnet_label.png")
-    
+
     def run(self):
         emb = compute_embedding_2d(self.pdf)
         plot_embedding(self.pdf, emb, "ego_birdnet_label", 5)
         plt.savefig(f"{self.path}/ego_birdnet_label.png")
         plt.close()
+
 
 class KnnBirdnetLabelTask(luigi.Task):
     path = luigi.Parameter()
@@ -104,10 +106,9 @@ class KnnBirdnetLabelTask(luigi.Task):
 
     def output(self):
         return luigi.LocalTarget(self.path / "knn_birdnet_label.png")
-    
+
     def run(self):
         emb = compute_embedding_2d(self.pdf)
         plot_embedding(self.pdf, emb, "knn_birdnet_label", 5)
         plt.savefig(f"{self.path}/knn_birdnet_label.png")
         plt.close()
-
