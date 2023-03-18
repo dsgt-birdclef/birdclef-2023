@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 
 from birdclef.data.transforms import ToBirdNETEmbedding, ToFloatTensor
@@ -11,6 +12,7 @@ def test_to_float_tensor():
         assert isinstance(item, torch.Tensor)
 
 
+@pytest.mark.skip(reason="TODO: create a dummy model to test this all the way through")
 def test_to_birdnet_embedding():
     # TODO: create a dummy model to test this all the way through
     model_path = None

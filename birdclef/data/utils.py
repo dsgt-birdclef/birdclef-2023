@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-def slice_seconds(data, sample_rate, seconds=5, pad_seconds=0, step=None):
+def slice_seconds(data, sample_rate, seconds=3, pad_seconds=0, step=None):
     # compute step size
     k = sample_rate * seconds
     pad = sample_rate * pad_seconds
@@ -20,6 +20,10 @@ def slice_seconds(data, sample_rate, seconds=5, pad_seconds=0, step=None):
     indexed = data[indices]
     if indexed.shape[0] == 0:
         return []
+    return indexed
 
+
+def slice_seconds_indexed(data, sample_rate, seconds=3, pad_seconds=0, step=None):
+    indexed = slice_seconds(data, sample_rate, seconds, pad_seconds, step)
     time_index = np.arange(indexed.shape[0] + 1) * seconds
     return list(zip(time_index, indexed))
