@@ -52,8 +52,6 @@ class AudioPCMDataSet(IterableDataset):
 
     def _items(self, paths):
         """Iterate of a list of files, returning the relevant audio data for each track."""
-        # TODO: implement something reasonable here
-        # as a placehold, we're going to generate noise in the correct shape
         for path in paths:
             y, sr = librosa.load(path, sr=self.sample_rate)
             # only keep the data that reaches the minimum threshold
