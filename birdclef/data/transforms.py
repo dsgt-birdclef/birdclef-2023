@@ -1,4 +1,5 @@
 import torch
+from tensorflow import keras
 
 
 class ToFloatTensor:
@@ -15,12 +16,20 @@ class ToFloatTensor:
 
 
 class ToBirdNETEmbedding:
-    """Converts the samples into embedding space."""
+    """Converts the samples into embedding space given a tensorflow keras model."""
 
-    def __init__(self, model_path):
-        # TODO: load the model
-        self.model = lambda x: x
+    def __init__(self, model):
+        self.func = keras.backend.function([model.input], [model.layers[-2].output])
 
-    def __call__(self, sample):
-        X, y = sample
-        return self.model(X), y
+    def __call__(self, X):
+        return self.func(X)[0]
+
+
+class ToBirdNETPrediction:
+    """Converts the samples into prediction space given a tensorflow keras model."""
+
+    def __init__(self, model):
+        self.func = keras.backend.function([model.input], [model.layers[-1].output])
+
+    def __call__(self, X):
+        return self.func(X)[0]
