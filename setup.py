@@ -12,6 +12,7 @@ setuptools.setup(
         "numpy",
         "pandas",
         "matplotlib",
+        "networkx",
         "pyspark",
         "scikit-learn",
         "umap-learn",
