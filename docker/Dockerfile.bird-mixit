@@ -4,35 +4,15 @@ FROM tensorflow/tensorflow:latest
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg curl unzip git
 
-#RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-420.0.0-linux-x86_64.tar.gz
-#RUN tar -xf google-cloud-cli-420.0.0-linux-x86.tar.gz
-#RUN ./google-cloud-sdk/install.sh
-#RUN ./google-cloud-sdk/bin/gcloud init
-
 ADD vendor/sound-separation /app
 
 # download and unzip model checkpoints; note that bandwidth is free inside of GCP
 ENV MODEL_CHECKPOINT_URL=https://storage.googleapis.com/birdclef-2023/data/raw/sound_separation/bird_mixit_model_checkpoints.zip
-ENV DATASET_CHECKPOINT_URL=gs://birdclef-2023/data/raw/birdclef-2022/train_audio/afrsil1/
 RUN curl $MODEL_CHECKPOINT_URL --output /tmp/model.zip && \
     unzip /tmp/model.zip && \
     mv bird_mixit_model_checkpoints /app/checkpoints && \
     rm /tmp/model.zip
 
-
-# Run Datasets
-#RUN mkdir /mnt/data/raw
-#RUN mkdir /mnt/data/raw/birdclef-2022 
-#RUN mkdir /mnt/data/raw/birdclef-2022/train_audio 
-#RUN mkdir /mnt/data/raw/birdclef-2022/train_audio/afrsil1/ 
-RUN ls -la > /logs.txt
-#RUN cd /mnt/data/raw/birdclef-2022/train_audio/afrsil1/ && wget https://storage.googleapis.com/birdclef-2023/data/raw/birdclef-2022/train_audio/afrsil1/XC125458.ogg
-#RUN gsutil -m rsync -r data/raw/birdclef-2022/train_audio/afrsil1/
-
 ADD scripts /app/scripts
 
 WORKDIR /app
-
-RUN git clone https://github.com/google-research/sound-separation sound_separation
-
-

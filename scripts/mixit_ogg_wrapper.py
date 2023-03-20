@@ -24,11 +24,9 @@ def main():
         choices=["output_sources4", "output_sources8"],
         required=True,
     )
-    parser.add_argument("--sound_separation_root", type=str, default="/app/sound_separation")
+    parser.add_argument("--sound_separation_root", type=str, default="/app")
     parser.add_argument("--model_dir", type=str, default="/app/checkpoints")
     args, other_args = parser.parse_known_args()
-
-    print("ARGUMENTS: ", args)
 
     cleanup_tmp()
     input_path = Path(args.input)
