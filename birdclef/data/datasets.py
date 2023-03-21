@@ -35,9 +35,10 @@ class AudioPCMDataSet(IterableDataset):
         path,
         valid_ext=["ogg", "mp3"],
         sample_rate=48_000,
-        transform=None,
+        transforms=None,
         min_duration=10,
         window_step=1,
+        seq_step=None,
     ):
         super().__init__()
         self.sample_rate = sample_rate
@@ -45,6 +46,8 @@ class AudioPCMDataSet(IterableDataset):
         self.valid_ext = valid_ext
         self.min_duration = min_duration
         self.window_step = window_step
+        self.seq_step = seq_step or min_duration // 2
+        self.transforms = transforms
 
     def _get_paths(self, path, valid_ext):
         """Return a list of all paths under the current path that match the valid extensions."""
@@ -70,16 +73,16 @@ class AudioPCMDataSet(IterableDataset):
             ), f"first slice is not 3 seconds, {sliced[0]}"
             # now yield min_duration chunks of data
             # we want consequenctive sequences to have at least 50% differences
-            print(len(sliced), len(sliced[0]), print(sliced))
-            step = self.min_duration // 2
-            for start in range(0, int(seconds), step):
+            for start in range(0, int(seconds), self.seq_step):
                 # only keep as many chunks that we can fit in the min duration
                 end = start + (self.min_duration // self.window_step)
                 if end > seconds:
                     break
                 # get the data for this chunk
                 data = sliced[start:end]
-                print(data.shape)
+                if self.transforms:
+                    for transform in self.transforms:
+                        data = transform(data)
                 yield data
 
     def __iter__(self):
