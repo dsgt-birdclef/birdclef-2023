@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 import torch
-from tensorflow import keras
 
+from birdclef import birdnet
 from birdclef.data.transforms import (
     ToBirdNETEmbedding,
     ToBirdNETPrediction,
@@ -20,7 +20,7 @@ def test_to_float_tensor():
 def test_to_birdnet_embedding(birdnet_model_path):
     sample_rate = 48_000
     X = np.random.randn(5, sample_rate * 3)
-    model = keras.models.load_model(birdnet_model_path)
+    model = birdnet.load_model(birdnet_model_path, model_attr=None)
     res = ToBirdNETEmbedding(model)(X)
     assert res.shape == (5, 320)
 
@@ -28,6 +28,6 @@ def test_to_birdnet_embedding(birdnet_model_path):
 def test_to_birdnet_predictions(birdnet_model_path):
     sample_rate = 48_000
     X = np.random.randn(5, sample_rate * 3)
-    model = keras.models.load_model(birdnet_model_path)
+    model = birdnet.load_model(birdnet_model_path, model_attr=None)
     res = ToBirdNETPrediction(model)(X)
     assert res.shape == (5, 3337)
