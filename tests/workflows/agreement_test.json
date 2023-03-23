@@ -1,0 +1,82 @@
+[
+    {
+      "ego_primary_label": "normoc",
+      "n": 25068,
+      "n_ego_birdnet_label_matches": 5742,
+      "n_knn_birdnet_label_matches": 13414,
+      "pct_ego_birdnet_label_matches": 0.2290569651,
+      "pct_knn_birdnet_label_matches": 0.5351045157
+    },
+    {
+      "ego_primary_label": "houspa",
+      "n": 18173,
+      "n_ego_birdnet_label_matches": 8683,
+      "n_knn_birdnet_label_matches": 15517,
+      "pct_ego_birdnet_label_matches": 0.4777967314,
+      "pct_knn_birdnet_label_matches": 0.8538491168
+    },
+    {
+      "ego_primary_label": "skylar",
+      "n": 12849,
+      "n_ego_birdnet_label_matches": 6816,
+      "n_knn_birdnet_label_matches": 11874,
+      "pct_ego_birdnet_label_matches": 0.5304692972,
+      "pct_knn_birdnet_label_matches": 0.9241186085
+    },
+    {
+      "ego_primary_label": "norcar",
+      "n": 12216,
+      "n_ego_birdnet_label_matches": 4520,
+      "n_knn_birdnet_label_matches": 7989,
+      "pct_ego_birdnet_label_matches": 0.3700065488,
+      "pct_knn_birdnet_label_matches": 0.653978389
+    },
+    {
+      "ego_primary_label": "wesmea",
+      "n": 9479,
+      "n_ego_birdnet_label_matches": 3907,
+      "n_knn_birdnet_label_matches": 8107,
+      "pct_ego_birdnet_label_matches": 0.41217428,
+      "pct_knn_birdnet_label_matches": 0.8552589936
+    },
+    {
+      "ego_primary_label": "brnowl",
+      "n": 8186,
+      "n_ego_birdnet_label_matches": 3932,
+      "n_knn_birdnet_label_matches": 6027,
+      "pct_ego_birdnet_label_matches": 0.4803322746,
+      "pct_knn_birdnet_label_matches": 0.7362570242
+    },
+    {
+      "ego_primary_label": "mallar3",
+      "n": 7489,
+      "n_ego_birdnet_label_matches": 3460,
+      "n_knn_birdnet_label_matches": 6354,
+      "pct_ego_birdnet_label_matches": 0.4620109494,
+      "pct_knn_birdnet_label_matches": 0.8484443851
+    },
+    {
+      "ego_primary_label": "houfin",
+      "n": 6616,
+      "n_ego_birdnet_label_matches": 3420,
+      "n_knn_birdnet_label_matches": 5075,
+      "pct_ego_birdnet_label_matches": 0.5169286578,
+      "pct_knn_birdnet_label_matches": 0.7670798065
+    },
+    {
+      "ego_primary_label": "commyn",
+      "n": 6524,
+      "n_ego_birdnet_label_matches": 1534,
+      "n_knn_birdnet_label_matches": 3021,
+      "pct_ego_birdnet_label_matches": 0.235131821,
+      "pct_knn_birdnet_label_matches": 0.4630594727
+    },
+    {
+      "ego_primary_label": "dunlin",
+      "n": 6069,
+      "n_ego_birdnet_label_matches": 2460,
+      "n_knn_birdnet_label_matches": 4630,
+      "pct_ego_birdnet_label_matches": 0.405338606,
+      "pct_knn_birdnet_label_matches": 0.7628933927
+    }
+]
