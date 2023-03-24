@@ -16,14 +16,13 @@ from birdclef.utils import get_spark
 
 
 class ClusterPlotAllTasks(luigi.WrapperTask):
+    spark_path = luigi.Parameter()
     local_path = luigi.Parameter()
     total_cnt = luigi.Parameter()
 
     def requires(self):
         spark = get_spark(memory="2g")
-        df = spark.read.parquet(
-            "/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors/v1"
-        )
+        df = spark.read.parquet(self.spark_path)
         labeled_neighborhood = get_knn_labels(df).cache()
 
         for i in range(self.total_cnt):

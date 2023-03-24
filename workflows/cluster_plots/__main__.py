@@ -26,6 +26,7 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
     data_output_path = luigi.Parameter()
     plot_local_path = luigi.Parameter()
     plot_cloud_path = luigi.Parameter()
+    spark_path = luigi.Parameter()
     list_species = luigi.Parameter()
 
     def requires(self):
@@ -37,6 +38,7 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
         yield pull_data
 
         yield ClusterPlotAllTasks(
+            spark_path=self.spark_path,
             local_path=self.plot_local_path,
             total_cnt=len(self.list_species),
         )
@@ -52,22 +54,32 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
 
 
 def list_species(path):
-    return json.loads(Path(path).read_text())
+    return json.loads(path.read_text())
 
 
 if __name__ == "__main__":
-    agreement_path = "/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json"
+    data_path = (
+        Path(__file__).parent.parent.parent.parent / "data/processed/birdclef-2022"
+    )
+    agreement_path = (
+        data_path
+        / "birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json"
+    )
     species_list = [t["ego_primary_label"] for t in list_species(agreement_path)]
+
     luigi.build(
         [
             ClusterPlotTaskWrapper(
+                spark_path=str(data_path / "birdnet-embeddings-with-neighbors/v1"),
                 data_input_path="data/processed/birdclef-2022/birdnet-embeddings-with-neighbors",
-                data_output_path="../data/processed/birdclef-2022/birdnet-embeddings-with-neighbors",
-                plot_local_path="/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
+                data_output_path=str(data_path / "birdnet-embeddings-with-neighbors"),
+                plot_local_path=str(
+                    data_path / "birdnet-embeddings-with-neighbors-static/v1"
+                ),
                 plot_cloud_path="data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
                 list_species=species_list,
             ),
         ],
-        # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+        scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
         workers=2,
     )
