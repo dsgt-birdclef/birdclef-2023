@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.8.0...app-v0.8.1) (2023-03-25)
+
+
+### Bug Fixes
+
+* add submodule update in mixit ([d36c7e5](https://github.com/dsgt-birdclef/birdclef-2023/commit/d36c7e55fb88c7ac87764ed889ef6ea45abdb944))
+
 ## [0.8.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.7.0...app-v0.8.0) (2023-03-25)
 
 
