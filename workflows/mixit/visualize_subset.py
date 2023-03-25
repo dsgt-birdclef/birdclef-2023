@@ -48,7 +48,10 @@ class GenerateAssets(luigi.Task, DynamicRequiresMixin):
 
     def output(self):
         return single_file_target(
-            Path(self.output_path) / "assets" / Path(self.track_name).stem / "_SUCCESS"
+            Path(self.output_path)
+            / "assets"
+            / self.track_name.replace(".ogg", "")
+            / "_SUCCESS"
         )
 
     def run(self):
@@ -70,7 +73,7 @@ class GenerateAssets(luigi.Task, DynamicRequiresMixin):
             plt.colorbar(format="%+2.0f dB")
             plt.title(f"Mel-frequency spectrogram of {path.parts[-2]}/{path.parts[-1]}")
             plt.tight_layout()
-            plt.savefig(f"{parent}/{path.stem}_spectogram.png")
+            plt.savefig(f"{parent}/{path.stem}_spectrogram.png")
             plt.close()
 
         # now lets generate the plots using the labels
