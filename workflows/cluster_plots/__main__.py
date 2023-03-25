@@ -4,6 +4,7 @@ from pathlib import Path
 
 import luigi
 from google.cloud import storage
+from pyspark.sql import functions as F
 
 from birdclef.knn_labels import (
     compute_embedding_2d,

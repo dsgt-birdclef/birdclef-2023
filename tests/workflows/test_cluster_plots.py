@@ -9,15 +9,11 @@ from google.cloud import storage
 
 from workflows.cluster_plots.plotting import ClusterPlotAllTasks
 
-default_spark_path = (
-    "/home/nzhon/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors/v1"
-)
 
-
-def test_cluster_plots_task_luigi_build(
-    spark_path=default_spark_path, tmp_path="test_output"
-):
+# @pytest.mark.skip(reason="test relies on embeddings dataset")
+def test_cluster_plots_task_luigi_build(tmp_path="test_output"):
     abs_path = os.path.dirname(__file__)
+    spark_path = os.path.join(abs_path, "cluster_plot_test_data")
     filename = os.path.join(abs_path, "agreement_test.json")
     tmp_path = os.path.join(abs_path, tmp_path)
     os.mkdir(tmp_path)
