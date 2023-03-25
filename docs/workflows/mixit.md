@@ -20,8 +20,8 @@ zip -r bird_mixit_model_checkpoints.zip bird_mixit_model_checkpoints/
 Then we can build the docker image:
 
 ```bash
-docker-compose -f docker/docker-compose.bird-mixit.yml build
-docker-compose -f docker/docker-compose.bird-mixit.yml push
+docker compose -f docker/docker-compose.bird-mixit.yml build
+docker compose -f docker/docker-compose.bird-mixit.yml push
 ```
 
 ## Usage
@@ -33,7 +33,7 @@ docker compose \
     -f docker/docker-compose.bird-mixit.yml \
     run -u $(id -u):$(id -g) \
     bird-mixit \
-        python scripts/mixit_ogg_wrapper.py \
+        python scripts/mixit_wrapper.py \
             --input /mnt/data/raw/birdclef-2022/train_audio/afrsil1/XC125458.ogg \
             --output /mnt/data/processed/birdclef-2022/mixit/afrisil1/XC125458.ogg \
             --model_name output_sources4 \
@@ -47,7 +47,7 @@ docker run --rm \
     -u $(id -u):$(id -g) \
     -v ${PWD}/data:/mnt/data \
     -it us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit:latest \
-        python scripts/mixit_ogg_wrapper.py \
+        python scripts/mixit_wrapper.py \
             --input /mnt/data/raw/birdclef-2022/train_audio/afrsil1/XC125458.ogg \
             --output /mnt/data/processed/birdclef-2022/mixit/afrisil1/XC125458.ogg \
             --model_name output_sources4 \
@@ -62,19 +62,9 @@ docker run --rm \
     -u $(id -u):$(id -g) \
     -v ${PWD}/data:/mnt/data \
     -it us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit-gpu:latest \
-        python scripts/mixit_ogg_wrapper.py \
+        python scripts/mixit_wrapper.py \
             --input /mnt/data/raw/birdclef-2022/train_audio/afrsil1/XC125458.ogg \
             --output /mnt/data/processed/mixit/afrisil1/XC125458.ogg \
             --model_name output_sources4 \
             --num_sources 4
-```
-
-We put together a small script that will run the mixit model against all of the files in a particular species directory, and additionally runs birdnet against all of the resulting sound separated files.
-
-```bash
-./scripts/mixit_batch.sh chukar
-python ./scripts/mixit_batch_concat.py \
-    data/processed/mixit/analysis/chukar \
-    data/raw/birdclef-2022 \
-    data/processed/mixit/chukar_v1.parquet
 ```

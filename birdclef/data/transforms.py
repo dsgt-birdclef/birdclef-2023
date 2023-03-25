@@ -1,6 +1,8 @@
 import torch
 from tensorflow import keras
 
+from birdclef import birdnet
+
 
 class ToFloatTensor:
     """Converts numpy arrays to float Variables in Pytorch."""
@@ -19,7 +21,7 @@ class ToBirdNETEmbedding:
     """Converts the samples into embedding space given a tensorflow keras model."""
 
     def __init__(self, model):
-        self.func = keras.backend.function([model.input], [model.layers[-2].output])
+        self.func = birdnet.embedding_func(model)
 
     def __call__(self, X):
         return self.func(X)[0]
@@ -29,7 +31,7 @@ class ToBirdNETPrediction:
     """Converts the samples into prediction space given a tensorflow keras model."""
 
     def __init__(self, model):
-        self.func = keras.backend.function([model.input], [model.layers[-1].output])
+        self.func = birdnet.prediction_func(model)
 
     def __call__(self, X):
         return self.func(X)[0]

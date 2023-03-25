@@ -18,6 +18,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="Input file.", required=True, type=str)
     parser.add_argument("-o", "--output", help="Output file.", required=True, type=str)
+    parser.add_argument("--output_format", help="Output format.", default="ogg")
     parser.add_argument(
         "--model_name",
         type=str,
@@ -27,6 +28,9 @@ def main():
     parser.add_argument("--sound_separation_root", type=str, default="/app")
     parser.add_argument("--model_dir", type=str, default="/app/checkpoints")
     args, other_args = parser.parse_known_args()
+
+    if args.output_format not in ["ogg", "mp3"]:
+        raise ValueError(f"Invalid output format: {args.output_format}")
 
     cleanup_tmp()
     input_path = Path(args.input)
@@ -59,8 +63,12 @@ def main():
     output_path = Path(args.output).parent
     output_path.mkdir(parents=True, exist_ok=True)
     for p in Path("/tmp").glob(f"{output_name}_source*.wav"):
-        output = output_path / p.name.replace("wav", "ogg")
-        run(f"ffmpeg -y -i {p} -acodec libvorbis {output}".split())
+        if args.output_format == "ogg":
+            output = output_path / p.name.replace("wav", "ogg")
+            run(f"ffmpeg -y -i {p} -acodec libvorbis {output}".split())
+        elif args.output_format == "mp3":
+            output = output_path / p.name.replace("wav", "mp3")
+            run(f"ffmpeg -y -i {p} -acodec libmp3lame -q:a 5 {output}".split())
 
     cleanup_tmp()
 

@@ -8,6 +8,29 @@ from luigi.parameter import ParameterVisibility
 from pydub import AudioSegment
 
 
+class OggToMP3SingleTask(luigi.Task):
+    input_path = luigi.Parameter()
+    output_path = luigi.Parameter()
+    track_name = luigi.Parameter()
+
+    def output(self):
+        return luigi.LocalTarget(
+            Path(self.output_path) / self.track_name.replace(".ogg", ".mp3")
+        )
+
+    def load_ogg(self, ofn):
+        return AudioSegment.from_file(ofn)
+
+    def run(self):
+        track_path = Path(self.input_path) / self.track_name
+        track_audio = self.load_ogg(track_path)
+        track_audio.export(
+            self.output().path,
+            format="mp3",
+            parameters=["-q:a", "5"],
+        )
+
+
 class OggToMP3(luigi.Task):
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
