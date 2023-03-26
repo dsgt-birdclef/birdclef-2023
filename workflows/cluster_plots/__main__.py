@@ -28,23 +28,16 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
     plot_local_path = luigi.Parameter()
     plot_cloud_path = luigi.Parameter()
     spark_path = luigi.Parameter()
-    list_species = luigi.Parameter()
+    total_cnt = luigi.Parameter()
 
     def requires(self):
-        pull_data = Pull(
-            input_path=self.data_input_path,
-            output_path=self.data_output_path,
-            parallelism=os.cpu_count(),
-        )
-        yield pull_data
-
         yield ClusterPlotAllTasks(
             spark_path=self.spark_path,
             local_path=self.plot_local_path,
-            total_cnt=len(self.list_species),
+            total_cnt=self.total_cnt,
         )
 
-        for i in len(self.list_species):
+        for i in self.total_cnt:
             name = self.list_species[i]
             push_data = Push(
                 input_path=f"{self.plot_local_path}/{name}",
@@ -53,33 +46,59 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
             )
             yield push_data
 
-
-def list_species(path):
-    return json.loads(path.read_text())
-
+def get_species_list(path):
+    agreement_path = Path(f"{path}/birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json")
+    return [t["ego_primary_label"] for t in json.loads(agreement_path.read_text())]
 
 if __name__ == "__main__":
     data_path = (
         Path(__file__).parent.parent.parent.parent / "data/processed/birdclef-2022"
     )
-    agreement_path = (
-        data_path
-        / "birdnet-embeddings-with-neighbors-agreement-static/v1/agreement.json"
-    )
-    species_list = [t["ego_primary_label"] for t in list_species(agreement_path)]
-
+    os.makedirs(data_path)
+    os.makedirs(data_path / "birdnet-embeddings-with-neighbors-static/v1")
     luigi.build(
         [
+            Pull(
+                input_path="data/processed/birdclef-2022/birdnet-embeddings-with-neighbors/v1",
+                output_path=f"{str(data_path)}/birdnet-embeddings-with-neighbors/v1",
+                parallelism=os.cpu_count(),
+            ), 
+            Pull(
+                input_path="data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-agreement-static/v1",
+                output_path=f"{str(data_path)}/birdnet-embeddings-with-neighbors-agreement-static/v1",
+                parallelism=os.cpu_count(),
+            )
+        ],
+        scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+        workers=2,
+    )
+    species_list = get_species_list(str(data_path))
+    storage_client = storage.Client("birdclef-2023")
+    bucket = storage_client.get_bucket("birdclef-2023")
+    for species in species_list:
+        blobs = list(bucket.list_blobs(prefix=f"data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{species}"))
+        if len(blobs) > 0:
+            luigi.build([
+                    Pull(
+                        input_path=f"data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{species}",
+                        output_path=f"{data_path}/birdnet-embeddings-with-neighbors-static/v1/{species}",
+                        parallelism=os.cpu_count(),
+                    )
+                ],
+                scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+                workers=2,
+            ) 
+    luigi.build([
             ClusterPlotTaskWrapper(
                 spark_path=str(data_path / "birdnet-embeddings-with-neighbors/v1"),
-                data_input_path="data/processed/birdclef-2022/birdnet-embeddings-with-neighbors",
-                data_output_path=str(data_path / "birdnet-embeddings-with-neighbors"),
+                data_input_path="data/processed/birdclef-2022",
+                data_output_path=str(data_path),
                 plot_local_path=str(
                     data_path / "birdnet-embeddings-with-neighbors-static/v1"
                 ),
                 plot_cloud_path="data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1",
-                list_species=species_list,
-            ),
+                total_cnt=len(species_list),
+            ),  
         ],
         scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
         workers=2,
