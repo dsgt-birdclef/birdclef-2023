@@ -44,7 +44,7 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
             total_cnt=len(self.list_species),
         )
 
-        for i in range(24):
+        for i in len(self.list_species):
             name = self.list_species[i]
             push_data = Push(
                 input_path=f"{self.plot_local_path}/{name}",
