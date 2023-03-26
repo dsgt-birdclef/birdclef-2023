@@ -1,0 +1,26 @@
+[
+  {
+    "ego_primary_label": "bubsan",
+    "n": 11,
+    "n_ego_birdnet_label_matches": 0,
+    "n_knn_birdnet_label_matches": 0,
+    "pct_ego_birdnet_label_matches": 0.0,
+    "pct_knn_birdnet_label_matches": 0.0
+  },
+  {
+    "ego_primary_label": "puaioh",
+    "n": 9,
+    "n_ego_birdnet_label_matches": 6,
+    "n_knn_birdnet_label_matches": 0,
+    "pct_ego_birdnet_label_matches": 0.6666666667,
+    "pct_knn_birdnet_label_matches": 0.0
+  },
+  {
+    "ego_primary_label": "coopet",
+    "n": 8,
+    "n_ego_birdnet_label_matches": 5,
+    "n_knn_birdnet_label_matches": 0,
+    "pct_ego_birdnet_label_matches": 0.625,
+    "pct_knn_birdnet_label_matches": 0.0
+  }
+]

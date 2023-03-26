@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import shutil
 import subprocess
 
@@ -10,15 +11,16 @@ from google.cloud import storage
 from workflows.cluster_plots.plotting import ClusterPlotAllTasks
 
 
-# @pytest.mark.skip(reason="test relies on embeddings dataset")
-def test_cluster_plots_task_luigi_build(tmp_path="test_output"):
-    abs_path = os.path.dirname(__file__)
-    spark_path = os.path.join(abs_path, "cluster_plot_test_data")
-    filename = os.path.join(abs_path, "agreement_test.json")
-    tmp_path = os.path.join(abs_path, tmp_path)
-    os.mkdir(tmp_path)
+@pytest.fixture
+def workflows_data_path():
+    return pathlib.Path(__file__).parent / "data"
 
-    f = open(filename)
+
+# @pytest.mark.skip(reason="test relies on embeddings dataset")
+def test_cluster_plots_task_luigi_build(tmp_path, workflows_data_path):
+    spark_path = str(workflows_data_path / "cluster_plot_test_data")
+
+    f = open(workflows_data_path / "agreement_test.json")
     agreement = json.load(f)
     species_list = [t["ego_primary_label"] for t in agreement]
 
@@ -31,8 +33,7 @@ def test_cluster_plots_task_luigi_build(tmp_path="test_output"):
     assert res
 
     output_dir = list(os.listdir(tmp_path))
-    assert len(output_dir) == 10
+    assert len(output_dir) == 3
 
     for species in species_list:
         assert species in output_dir
-    shutil.rmtree(tmp_path)
