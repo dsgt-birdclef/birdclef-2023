@@ -22,7 +22,7 @@ from workflows.utils.push import Push
 from .plotting import ClusterPlotAllTasks
 
 
-class ClusterPlotTaskWrapper(luigi.WrapperTask):
+class ClusterPlotTaskWrapper(luigi.Task):
     data_input_path = luigi.Parameter()
     data_output_path = luigi.Parameter()
     plot_local_path = luigi.Parameter()
@@ -30,7 +30,9 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
     spark_path = luigi.Parameter()
     list_species = luigi.Parameter()
 
-    def requires(self):
+    task_complete = False
+
+    def run(self):
         yield ClusterPlotAllTasks(
             spark_path=self.spark_path,
             local_path=self.plot_local_path,
@@ -45,6 +47,10 @@ class ClusterPlotTaskWrapper(luigi.WrapperTask):
                 parallelism=1,
             )
             yield push_data
+        self.task_complete = True
+
+    def complete(self):
+        return self.task_complete
 
 
 def get_species_list(path):
@@ -85,7 +91,7 @@ if __name__ == "__main__":
                 prefix=f"data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1/{species}"
             )
         )
-        if len(blobs) > 0:
+        if len(blobs) == 4:
             luigi.build(
                 [
                     Pull(
