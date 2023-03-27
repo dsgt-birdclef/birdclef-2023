@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from tensorflow import keras
 from torch.utils.data import DataLoader
 
+from birdclef.birdnet import load_model
 from birdclef.data.datasets import AudioPCMDataSet
 from birdclef.data.transforms import ToBirdNETEmbedding
 
@@ -56,7 +57,7 @@ class TransformerModel(pl.LightningModule):
 def main():
     # Define the dataset and DataLoader
     parent_dir = Path(__file__).parent.parent
-    train_audio = parent_dir / "data/raw/birdclef-2022/train_audio/mp3/afrsil1"
+    train_audio = parent_dir / "data/raw/birdclef-2022/train_audio/mp3/"
     birdnet_model_path = (
         parent_dir
         / "vendor/BirdNET-Analyzer/checkpoints/V2.2/BirdNET_GLOBAL_3K_V2.2_Model/"
@@ -64,9 +65,11 @@ def main():
 
     sample_rate = 48_000
 
-    birdnet_model = keras.models.load_model(birdnet_model_path, compile=False)
+    birdnet_model = load_model(birdnet_model_path)
     print(birdnet_model.summary())
-    ds = AudioPCMDataSet(
+
+    # Load the full dataset
+    full_dataset = AudioPCMDataSet(
         train_audio,
         sample_rate=sample_rate,
         min_duration=10,
@@ -75,7 +78,15 @@ def main():
             ToBirdNETEmbedding(birdnet_model),
         ],
     )
-    dataloader = DataLoader(dataset, batch_size=32, num_workers=4)
+
+    # Split the full dataset into train and validation sets
+    # train_size = int(0.8 * len(full_dataset))
+    # val_size = len(full_dataset) - train_size
+    # train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
+
+    # Create DataLoaders for train and validation sets
+    train_dataloader = DataLoader(full_dataset, batch_size=32, num_workers=4)
+    # val_dataloader = DataLoader(val_dataset, batch_size=32, num_workers=4)
 
     # Define the model
     model = TransformerModel(
@@ -87,8 +98,8 @@ def main():
     )
 
     # Train the model
-    trainer = pl.Trainer(gpus=1, max_epochs=10)
-    trainer.fit(model, dataloader)
+    trainer = pl.Trainer(accelerator="auto")
+    trainer.fit(model, train_dataloader)
 
 
 if __name__ == "__main__":
