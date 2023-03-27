@@ -18,7 +18,7 @@ from birdclef.utils import get_spark
 class ClusterPlotAllTasks(luigi.WrapperTask):
     spark_path = luigi.Parameter()
     local_path = luigi.Parameter()
-    total_cnt = luigi.Parameter()
+    total_cnt = luigi.IntParameter()
 
     def requires(self):
         spark = get_spark(memory="2g")
