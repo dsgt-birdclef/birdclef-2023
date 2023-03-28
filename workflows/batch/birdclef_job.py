@@ -32,7 +32,7 @@ def create_script_job(
             )
         ],
         compute_resource=batch_v1.ComputeResource(cpu_milli=8000, memory_mib=30_000),
-        max_retry_count=2,
+        max_retry_count=0,
         max_run_duration="3600s",
     )
 
