@@ -49,5 +49,6 @@ setuptools.setup(
             "onnx",
             "onnxruntime",
         ],
+        "tensorflow-opt": ["tensorflow-model-optimization"],
     },
 )

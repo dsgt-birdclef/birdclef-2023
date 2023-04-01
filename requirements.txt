@@ -92,6 +92,8 @@ defusedxml==0.7.1
     # via nbconvert
 distlib==0.3.6
     # via virtualenv
+dm-tree==0.1.8
+    # via tensorflow-model-optimization
 docker==6.0.1
     # via birdclef-2023
 docutils==0.19
@@ -377,6 +379,7 @@ numpy==1.23.5
     #   soxr
     #   tensorboard
     #   tensorflow
+    #   tensorflow-model-optimization
     #   tf2onnx
     #   torchmetrics
     #   umap-learn
@@ -573,6 +576,7 @@ six==1.16.0
     #   python-dateutil
     #   rfc3339-validator
     #   tensorflow
+    #   tensorflow-model-optimization
     #   tf2onnx
 sniffio==1.3.0
     # via anyio
@@ -602,6 +606,8 @@ tensorflow-estimator==2.11.0
     # via tensorflow
 tensorflow-io-gcs-filesystem==0.30.0
     # via tensorflow
+tensorflow-model-optimization==0.7.3
+    # via birdclef-2023
 termcolor==2.2.0
     # via tensorflow
 terminado==0.17.1
