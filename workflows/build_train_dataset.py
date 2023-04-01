@@ -242,31 +242,25 @@ class BuildTrainDatasetWorkflow(luigi.Task, DynamicRequiresMixin):
 
 
 if __name__ == "__main__":
-    luigi.build(
-        [
-            BuildTrainDatasetWorkflow(
-                birdclef_root_path="data/raw/birdclef-2023",
-                output_path="data/processed/birdclef-2023/train_embeddings",
-                birdnet_root_path="data/models/birdnet-analyzer-pruned",
-                species_limit=3,
-                track_limit=2,
-            )
-        ],
-        workers=max(os.cpu_count() // 2, 1),
-        scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
-        log_level="INFO",
-    )
-    #
-    # luigi.build(
-    #     [
-    #         PadAudioNoise(
-    #             input_path="data/raw/birdclef-2023/train_audio",
-    #             noise_alpha=0.1,
-    #             output_path="data/processed/birdclef-2023/train_embeddings/audio",
-    #             track_name="abhori1/XC127317.ogg",
-    #         )
-    #     ],
-    #     workers=max(os.cpu_count() // 4, 1),
-    #     scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
-    #     log_level="INFO",
-    # )
+    birdclef_root_path = "data/raw/birdclef-2023"
+    output_path = "data/processed/birdclef-2023/train_embeddings"
+    birdnet_root_path = "data/models/birdnet-analyzer-pruned"
+    species_limit = -1
+
+    train_audio_root = Path(birdclef_root_path) / "train_audio"
+    species = sorted([p.name for p in train_audio_root.glob("*")])
+
+    for s in species:
+        luigi.build(
+            [
+                SpeciesWorkflow(
+                    birdclef_root_path=birdclef_root_path,
+                    output_path=output_path,
+                    birdnet_root_path=birdnet_root_path,
+                    species=s,
+                )
+            ],
+            workers=max(int(os.cpu_count() / 2), 1),
+            scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+            log_level="INFO",
+        )
