@@ -161,23 +161,24 @@ class TrackWorkflow(luigi.Task):
         )
         yield pad_noise
 
+        wav_track_name = self.track_name.replace(".ogg", ".wav")
+
         convert_mp3 = ToMP3Single(
             input_path=f"{self.output_path}/audio",
             output_path=f"{self.output_path}/audio",
-            track_name=self.track_name.replace(".ogg", ".wav"),
+            track_name=wav_track_name,
             input_ext=".wav",
             dynamic_requires=[pad_noise],
         )
-        yield convert_mp3
 
         mixit = MixitDockerTask(
-            birdclef_root_path=self.birdclef_root_path,
+            input_path=f"{self.output_path}/audio",
             output_path=f"{self.output_path}/audio",
-            track_name=self.track_name,
+            track_name=wav_track_name,
             num_sources=4,
-            dynamic_requires=[convert_mp3],
+            dynamic_requires=[pad_noise],
         )
-        yield mixit
+        yield [convert_mp3, mixit]
 
         extract_embedding = ExtractEmbedding(
             input_path=f"{self.output_path}/audio",
@@ -247,8 +248,8 @@ if __name__ == "__main__":
                 birdclef_root_path="data/raw/birdclef-2023",
                 output_path="data/processed/birdclef-2023/train_embeddings",
                 birdnet_root_path="data/models/birdnet-analyzer-pruned",
-                species_limit=2,
-                track_limit=4,
+                species_limit=3,
+                track_limit=2,
             )
         ],
         workers=max(os.cpu_count() // 2, 1),

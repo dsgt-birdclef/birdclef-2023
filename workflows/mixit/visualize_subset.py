@@ -139,7 +139,7 @@ class MixitWrapperTask(luigi.WrapperTask):
         track_subset_df = pd.read_json(self.track_subset_path)
         for row in track_subset_df.itertuples():
             mixit_task = MixitDockerTask(
-                birdclef_root_path=self.birdclef_root_path,
+                input_path=f"{self.birdclef_root_path}/train_audio",
                 output_path=f"{self.output_path}/audio",
                 track_name=row.filename,
                 num_sources=4,

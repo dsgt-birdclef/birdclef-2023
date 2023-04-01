@@ -12,7 +12,7 @@ from workflows.utils.mixin import DynamicRequiresMixin
 class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     """Run Mixit on an audio file."""
 
-    birdclef_root_path = luigi.Parameter()
+    input_path = luigi.Parameter()
     output_path = luigi.Parameter()
     # {species}/{track}.ogg
     track_name = luigi.Parameter()
@@ -52,7 +52,7 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
         return " ".join(
             [
                 "python scripts/mixit_wrapper.py",
-                f"--input /mnt/{self.birdclef_root_path}/train_audio/{self.track_name}",
+                f"--input /mnt/{self.input_path}/{self.track_name}",
                 f"--output /mnt/staging_output/{self.track_name}",
                 f"--model_name output_sources{self.num_sources}",
                 f"--num_sources {self.num_sources}",
