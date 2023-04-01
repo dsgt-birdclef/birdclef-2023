@@ -11,7 +11,7 @@ import pandas as pd
 from birdclef import birdnet
 from birdclef.data.utils import slice_seconds
 from birdclef.utils import spark_resource
-from workflows.convert_audio.ogg_to_mp3 import OggToMP3SingleTask
+from workflows.convert_audio.ogg_to_mp3 import ToMP3Single
 from workflows.utils.gcs import single_file_target
 from workflows.utils.mixin import DynamicRequiresMixin
 from workflows.utils.rsync import GSUtilRsyncTask
@@ -147,7 +147,7 @@ class MixitWrapperTask(luigi.WrapperTask):
             yield mixit_task
 
             # let's also generate the original audio
-            mp3_task = OggToMP3SingleTask(
+            mp3_task = ToMP3Single(
                 input_path=f"{self.birdclef_root_path}/train_audio",
                 output_path=f"{self.output_path}/audio",
                 track_name=row.filename,

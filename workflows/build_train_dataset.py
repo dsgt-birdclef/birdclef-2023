@@ -26,7 +26,7 @@ import tqdm
 from birdclef import birdnet
 from birdclef.data.utils import slice_seconds
 from birdclef.utils import spark_resource
-from workflows.convert_audio.ogg_to_mp3 import OggToMP3SingleTask
+from workflows.convert_audio.ogg_to_mp3 import ToMP3Single
 from workflows.mixit.docker import MixitDockerTask
 from workflows.utils.gcs import single_file_target
 from workflows.utils.mixin import DynamicRequiresMixin
@@ -40,11 +40,13 @@ class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
     noise_alpha = luigi.FloatParameter(default=0.1)
 
     def output(self):
-        return single_file_target(Path(self.output_path) / self.track_name)
+        return single_file_target(
+            Path(self.output_path) / self.track_name.replace(".ogg", ".wav")
+        )
 
     def run(self):
         path = Path(self.input_path) / self.track_name
-        y, sr = librosa.load(path.as_posix(), sr=48_000)
+        y, sr = librosa.load(path.as_posix(), sr=48_000, mono=True)
 
         # lets generate noise using the same distribution as the signal. The shape
         # should be rounded up the the nearest 3rd second.
@@ -64,8 +66,14 @@ class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
         output_path = Path(self.output().path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # write another ogg file
-        sf.write(output_path.as_posix(), y_noise, sr, format="ogg", subtype="vorbis")
+        # write this as a temporary wav file
+        sf.write(output_path, y_noise, sr)
+
+        # wait for the file to be written up to 10 seconds
+        for i in range(20):
+            if output_path.exists():
+                break
+            time.sleep(0.5)
 
 
 class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
@@ -124,19 +132,28 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         # now with spark, lets write the parquet file
         with spark_resource(cores=self.parallelism) as spark:
             df = spark.createDataFrame(rows)
+            assert df.count() > 0, "No rows found in dataframe"
             df.repartition(1).write.parquet(
                 self.output().path,
                 mode="overwrite",
             )
 
 
-class TrackWorkflow(luigi.WrapperTask):
+class TrackWorkflow(luigi.Task):
     birdclef_root_path = luigi.Parameter()
     output_path = luigi.Parameter()
     birdnet_root_path = luigi.Parameter()
     track_name = luigi.Parameter()
 
-    def requires(self):
+    def output(self):
+        return single_file_target(
+            Path(self.output_path)
+            / "embeddings"
+            / self.track_name.replace(".ogg", "")
+            / "_SUCCESS"
+        )
+
+    def run(self):
         pad_noise = PadAudioNoise(
             input_path=f"{self.birdclef_root_path}/train_audio",
             output_path=f"{self.output_path}/audio",
@@ -144,12 +161,21 @@ class TrackWorkflow(luigi.WrapperTask):
         )
         yield pad_noise
 
+        convert_mp3 = ToMP3Single(
+            input_path=f"{self.output_path}/audio",
+            output_path=f"{self.output_path}/audio",
+            track_name=self.track_name.replace(".ogg", ".wav"),
+            input_ext=".wav",
+            dynamic_requires=[pad_noise],
+        )
+        yield convert_mp3
+
         mixit = MixitDockerTask(
             birdclef_root_path=self.birdclef_root_path,
             output_path=f"{self.output_path}/audio",
             track_name=self.track_name,
             num_sources=4,
-            dynamic_requires=[pad_noise],
+            dynamic_requires=[convert_mp3],
         )
         yield mixit
 
@@ -158,7 +184,7 @@ class TrackWorkflow(luigi.WrapperTask):
             output_path=f"{self.output_path}/embeddings",
             track_name=self.track_name,
             birdnet_root_path=self.birdnet_root_path,
-            dynamic_requires=[pad_noise, mixit],
+            dynamic_requires=[pad_noise, convert_mp3, mixit],
         )
         yield extract_embedding
 
@@ -219,13 +245,27 @@ if __name__ == "__main__":
         [
             BuildTrainDatasetWorkflow(
                 birdclef_root_path="data/raw/birdclef-2023",
-                output_path="data/processed/birdclef-2023/train",
-                birdnet_root_path="vendor/BirdNET-Analyzer",
+                output_path="data/processed/birdclef-2023/train_embeddings",
+                birdnet_root_path="data/models/birdnet-analyzer-pruned",
                 species_limit=2,
                 track_limit=4,
             )
         ],
-        workers=max(os.cpu_count() // 4, 1),
+        workers=max(os.cpu_count() // 2, 1),
         scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
         log_level="INFO",
     )
+    #
+    # luigi.build(
+    #     [
+    #         PadAudioNoise(
+    #             input_path="data/raw/birdclef-2023/train_audio",
+    #             noise_alpha=0.1,
+    #             output_path="data/processed/birdclef-2023/train_embeddings/audio",
+    #             track_name="abhori1/XC127317.ogg",
+    #         )
+    #     ],
+    #     workers=max(os.cpu_count() // 4, 1),
+    #     scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+    #     log_level="INFO",
+    # )
