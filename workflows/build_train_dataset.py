@@ -213,34 +213,6 @@ class SpeciesWorkflow(luigi.WrapperTask):
             )
 
 
-class BuildTrainDatasetWorkflow(luigi.Task, DynamicRequiresMixin):
-    birdclef_root_path = luigi.Parameter()
-    output_path = luigi.Parameter()
-    birdnet_root_path = luigi.Parameter()
-    species_limit = luigi.IntParameter(default=-1)
-    track_limit = luigi.IntParameter(default=-1)
-
-    def run(self):
-        # load the species
-        train_audio_root = Path(self.birdclef_root_path) / "train_audio"
-        species = sorted([p.name for p in train_audio_root.glob("*")])
-        if self.species_limit > 0:
-            species = species[: self.species_limit]
-
-        tasks = []
-        for s in species:
-            tasks.append(
-                SpeciesWorkflow(
-                    birdclef_root_path=self.birdclef_root_path,
-                    output_path=self.output_path,
-                    birdnet_root_path=self.birdnet_root_path,
-                    species=s,
-                    limit=self.track_limit,
-                )
-            )
-        yield tasks
-
-
 if __name__ == "__main__":
     birdclef_root_path = "data/raw/birdclef-2023"
     output_path = "data/processed/birdclef-2023/train_embeddings"
