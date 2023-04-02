@@ -33,11 +33,12 @@ class ClusterPlotTaskWrapper(luigi.Task):
     task_complete = False
 
     def run(self):
-        yield ClusterPlotAllTasks(
+        cluster_plots = ClusterPlotAllTasks(
             spark_path=self.spark_path,
             local_path=self.plot_local_path,
             total_cnt=len(self.list_species),
         )
+        yield cluster_plots
 
         for i in range(len(self.list_species)):
             name = self.list_species[i]
@@ -45,6 +46,7 @@ class ClusterPlotTaskWrapper(luigi.Task):
                 input_path=f"{self.plot_local_path}/{name}",
                 output_path=f"{self.plot_cloud_path}/{name}",
                 parallelism=1,
+                dynamic_requires = []
             )
             yield push_data
         self.task_complete = True
