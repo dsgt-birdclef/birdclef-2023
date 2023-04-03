@@ -4,8 +4,10 @@ import tempfile
 from pathlib import Path
 
 import luigi
+import torch
 from luigi.contrib.docker_runner import DockerTask
 
+import docker
 from workflows.utils.mixin import DynamicRequiresMixin
 
 
@@ -18,9 +20,14 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     track_name = luigi.Parameter()
     num_sources = luigi.IntParameter(default=4)
 
-    image = "us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit:latest"
-    container_options = {
-        "user": f"{os.getuid()}:{os.getgid()}",
+    image = (
+        "us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/{image}:latest".format(
+            image="bird-mixit-gpu" if torch.cuda.is_available() else "bird-mixit"
+        )
+    )
+    container_options = {"user": f"{os.getuid()}:{os.getgid()}"}
+    host_config_options = {
+        "device_requests": [docker.types.DeviceRequest(count=1, capabilities=[["gpu"]])]
     }
 
     @property
@@ -72,3 +79,23 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
             print(f"Moving {path} to {parent.parent}")
             path.rename(parent.parent / path.parent.name / path.name)
         shutil.rmtree(self.staging_path)
+
+
+if __name__ == "__main__":
+    # test the gpu version of this
+    train_audio = "data/raw/birdclef-2023/train_audio"
+    species = list(Path(train_audio).glob("**/*.ogg"))
+    luigi.build(
+        [
+            MixitDockerTask(
+                input_path=train_audio,
+                output_path="data/intermediate/luigi/mixit-test",
+                track_name=path.relative_to(train_audio).as_posix(),
+                num_sources=4,
+            )
+            for path in species[:4]
+        ],
+        workers=4,
+        scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+        log_level="INFO",
+    )

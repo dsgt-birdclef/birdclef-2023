@@ -35,7 +35,7 @@ setuptools.setup(
             "nb_black @ git+https://github.com/dnanhkhoa/nb_black.git@be0c810503867abc4a5e9d05ba75a16fce57dfee",
         ],
         "workflow": [
-            "luigi",
+            "luigi @ git+https://github.com/dsgt-birdclef/luigi.git@docker-host-options",
             "docker",
             "google-cloud-batch",
             "google-cloud-storage",
