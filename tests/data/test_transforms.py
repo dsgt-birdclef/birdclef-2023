@@ -1,7 +1,13 @@
 import numpy as np
+import pytest
 import torch
 
-from birdclef.data.transforms import ToBirdNETEmbedding, ToFloatTensor
+from birdclef import birdnet
+from birdclef.data.transforms import (
+    ToBirdNETEmbedding,
+    ToBirdNETPrediction,
+    ToFloatTensor,
+)
 
 
 def test_to_float_tensor():
@@ -11,12 +17,17 @@ def test_to_float_tensor():
         assert isinstance(item, torch.Tensor)
 
 
-def test_to_birdnet_embedding():
-    # TODO: create a dummy model to test this all the way through
-    model_path = None
+def test_to_birdnet_embedding(birdnet_model_path):
     sample_rate = 48_000
-    X = np.random.randn(sample_rate)
-    y = "test"
-    res = ToBirdNETEmbedding(model_path)([X, y])
-    # TODO: a proper test here
-    assert False
+    X = np.random.randn(5, sample_rate * 3)
+    model = birdnet.load_model(birdnet_model_path, model_attr=None)
+    res = ToBirdNETEmbedding(model)(X)
+    assert res.shape == (5, 320)
+
+
+def test_to_birdnet_predictions(birdnet_model_path):
+    sample_rate = 48_000
+    X = np.random.randn(5, sample_rate * 3)
+    model = birdnet.load_model(birdnet_model_path, model_attr=None)
+    res = ToBirdNETPrediction(model)(X)
+    assert res.shape == (5, 3337)

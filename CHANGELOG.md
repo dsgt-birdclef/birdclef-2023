@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.8.1](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.8.0...app-v0.8.1) (2023-03-25)
+
+
+### Bug Fixes
+
+* add submodule update in mixit ([d36c7e5](https://github.com/dsgt-birdclef/birdclef-2023/commit/d36c7e55fb88c7ac87764ed889ef6ea45abdb944))
+
+## [0.8.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.7.0...app-v0.8.0) (2023-03-25)
+
+
+### Features
+
+* add completed workflow for mixit assets ([adc8591](https://github.com/dsgt-birdclef/birdclef-2023/commit/adc85915eb7d292b9b9c5f0c89fdc4394ca65f77))
+* add example of using the dataloader with transform ([#72](https://github.com/dsgt-birdclef/birdclef-2023/issues/72)) ([6edb184](https://github.com/dsgt-birdclef/birdclef-2023/commit/6edb18454ac80419afef63eba24074d8f26dc4d4))
+* add functional mixit exploration page ([04d4d0a](https://github.com/dsgt-birdclef/birdclef-2023/commit/04d4d0a5a047cd89422411ef7f491649f9bf2c5b))
+* add notebook looking at ranked birdnet results on single species ([052075c](https://github.com/dsgt-birdclef/birdclef-2023/commit/052075c6de507b79cc1f74a03a0b7054c56904fe))
+* add workflow to generate mixit tracks for analysis ([6f4f92f](https://github.com/dsgt-birdclef/birdclef-2023/commit/6f4f92f511cb4d666ac1d0a1719b19a5b9f39a39))
+* move most depedencies into setup.py ([fcd7031](https://github.com/dsgt-birdclef/birdclef-2023/commit/fcd70313a984d08baa8dabf81f89e4be45486b8e))
+* update AudioPCMDataset with functional implementation ([192b18e](https://github.com/dsgt-birdclef/birdclef-2023/commit/192b18eb5a420ea716b02e38d4394ba5794a2f32))
+* update notebook with mixit example and update mixit scripts ([417d96d](https://github.com/dsgt-birdclef/birdclef-2023/commit/417d96de0d85d56d82421a9a245e84f6e9fc9e10))
+* Working Mixit Model DockerFiles and runner scripts. ([#59](https://github.com/dsgt-birdclef/birdclef-2023/issues/59)) ([ead3467](https://github.com/dsgt-birdclef/birdclef-2023/commit/ead34674e49ef9c4fa35fe6e447d241ddd98d897))
+
+
+### Bug Fixes
+
+* bump settings for networkx ([7de9bee](https://github.com/dsgt-birdclef/birdclef-2023/commit/7de9beea3e8fbed0848a52964ab034e50793436d))
+
 ## [0.7.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.6.0...app-v0.7.0) (2023-03-12)
 
 

@@ -2,7 +2,7 @@
 FROM tensorflow/tensorflow:latest
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg curl unzip
+    apt-get install -y --no-install-recommends ffmpeg curl unzip git
 
 ADD vendor/sound-separation /app
 

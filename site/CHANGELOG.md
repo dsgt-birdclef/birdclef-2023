@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.1](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.8.0...site-v0.8.1) (2023-03-25)
+
+
+### Miscellaneous Chores
+
+* **site:** Synchronize undefined versions
+
+## [0.8.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.7.0...site-v0.8.0) (2023-03-25)
+
+
+### Features
+
+* add functional mixit exploration page ([04d4d0a](https://github.com/dsgt-birdclef/birdclef-2023/commit/04d4d0a5a047cd89422411ef7f491649f9bf2c5b))
+
 ## [0.7.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.6.0...site-v0.7.0) (2023-03-12)
 
 

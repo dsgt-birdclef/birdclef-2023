@@ -8,7 +8,6 @@ services:
         - us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit:latest
     image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit:${TAG:-latest}
     volumes: &volumes
-      - ../data/raw/sound_separation/bird_mixit_model_checkpoints:/app/checkpoints
       - ../scripts:/app/scripts
       - ../data:/mnt/data
   bird-mixit-gpu:

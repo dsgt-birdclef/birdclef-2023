@@ -1,11 +1,11 @@
 import numpy as np
 
-from birdclef.data.utils import slice_seconds
+from birdclef.data.utils import slice_seconds_indexed
 
 
-def test_slice_seconds_right_pad():
+def test_slice_seconds_indexed_right_pad():
     x = np.ones(16)
-    res = slice_seconds(x, 1, 5)
+    res = slice_seconds_indexed(x, 1, 5)
     assert len(res) == 4
 
     # assert 1st slice is correct
@@ -19,8 +19,8 @@ def test_slice_seconds_right_pad():
     assert (v - np.array([1, 0, 0, 0, 0])).sum() == 0
 
 
-def test_slice_seconds_step_size():
+def test_slice_seconds_indexed_step_size():
     x = np.arange(16)
-    res = slice_seconds(x, 1, 4, step=2)
+    res = slice_seconds_indexed(x, 1, 4, step=2)
     print(res)
     assert len(res) == 7
