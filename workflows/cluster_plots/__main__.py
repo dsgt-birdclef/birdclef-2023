@@ -6,16 +6,6 @@ import luigi
 from google.cloud import storage
 from pyspark.sql import functions as F
 
-from birdclef.knn_labels import (
-    compute_embedding_2d,
-    get_knn_labels,
-    get_label_agreement,
-    get_subset_pdf,
-    plot_distances,
-    plot_embedding,
-    write_plots_to_disk,
-)
-from birdclef.utils import get_spark
 from workflows.utils.pull import Pull
 from workflows.utils.push import Push
 
