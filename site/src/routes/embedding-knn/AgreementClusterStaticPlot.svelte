@@ -6,18 +6,15 @@
   let api_url: string =
     "/api/v1/data/processed/birdclef-2022/birdnet-embeddings-with-neighbors-static/v1";
 
-  $: names = data.map((d) => d["ego_primary_label"]).slice(0, 20);
+  $: names = data.map((d) => d["ego_primary_label"]);
 </script>
 
-<div class="selection">
-  <b>Species:</b>
+<h5 style="display:inline">Species:</h5>
+<select bind:value={selected}>
   {#each names as name}
-    <label>
-      <input type="radio" bind:group={selected} {name} value={name} />
-      {name}
-    </label>
+    <option value={name}>{name}</option>
   {/each}
-</div>
+</select>
 
 <h5>Distances</h5>
 <img src="{api_url}/{selected}/distances.png" />

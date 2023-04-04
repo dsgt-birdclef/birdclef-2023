@@ -12,7 +12,7 @@ class Push(luigi.Task):
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
     parallelism = luigi.IntParameter(default=os.cpu_count(), significant=False)
-    dynamic_requires = luigi.Parameter(
+    dynamic_requires = luigi.ListParameter(
         default=[], visibility=ParameterVisibility.HIDDEN
     )
 
