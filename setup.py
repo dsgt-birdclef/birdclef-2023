@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="birdclef-2023",
-    version="0.8.1",
+    version="0.9.0",
     description="Utilities for birdclef 2023",
     author="Anthony Miyaguchi",
     author_email="acmiyaguchi@gatech.edu",
