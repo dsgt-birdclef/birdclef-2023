@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.8.1...app-v0.9.0) (2023-04-04)
+
+
+### Features
+
+* create luigi script for creating cluster plots ([#62](https://github.com/dsgt-birdclef/birdclef-2023/issues/62)) ([b2c4802](https://github.com/dsgt-birdclef/birdclef-2023/commit/b2c4802b58164bb86d5fa6e55acb5f2c553a423d))
+
+
+### Bug Fixes
+
+* Add available secrets to cloudbuild ([4d0c4b9](https://github.com/dsgt-birdclef/birdclef-2023/commit/4d0c4b94e571b0102abaed6e958e5e7be5a6a24b))
+
 ## [0.8.1](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.8.0...app-v0.8.1) (2023-03-25)
 
 

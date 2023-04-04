@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.8.1...site-v0.9.0) (2023-04-04)
+
+
+### Features
+
+* create luigi script for creating cluster plots ([#62](https://github.com/dsgt-birdclef/birdclef-2023/issues/62)) ([b2c4802](https://github.com/dsgt-birdclef/birdclef-2023/commit/b2c4802b58164bb86d5fa6e55acb5f2c553a423d))
+
 ## [0.8.1](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.8.0...site-v0.8.1) (2023-03-25)
 
 
