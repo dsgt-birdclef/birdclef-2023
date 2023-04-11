@@ -17,7 +17,7 @@ def slice_seconds(data, sample_rate, seconds=3, pad_seconds=0, step=None):
 
     n = len(data)
     indices = [np.arange(i, i + k + pad) for i in range(0, n, step) if i + k + pad <= n]
-    indexed = data[indices]
+    indexed = np.stack([data[i] for i in indices])
     if indexed.shape[0] == 0:
         return []
     return indexed
