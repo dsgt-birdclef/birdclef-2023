@@ -143,7 +143,7 @@ def main():
     # Train the model
 
     # Train the model
-    trainer = pl.Trainer(accelerator="cpu")
+    trainer = pl.Trainer(accelerator="cpu", default_root_dir="data/lightning_logs")
     trainer.fit(model, train_dataloader, val_dataloader)
 
     # Evaluate the model on the test set
