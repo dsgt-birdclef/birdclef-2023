@@ -14,6 +14,8 @@ from workflows.utils.mixin import DynamicRequiresMixin
 class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     """Run Mixit on an audio file."""
 
+    resources = {"max_workers": 2} if torch.cuda.is_available() else {}
+
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
     # {species}/{track}.ogg
@@ -26,15 +28,24 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
         )
     )
     container_options = {"user": f"{os.getuid()}:{os.getgid()}"}
-    host_config_options = {
-        "device_requests": [docker.types.DeviceRequest(count=1, capabilities=[["gpu"]])]
-    }
+    host_config_options = (
+        {
+            "device_requests": [
+                docker.types.DeviceRequest(count=1, capabilities=[["gpu"]])
+            ]
+        }
+        if torch.cuda.is_available()
+        else {}
+    )
 
     @property
     def staging_path(self):
         # a singleton variable that's set on the first call, hacky solution
         if not hasattr(self, "_staging_path"):
             self._staging_path = Path(tempfile.mkdtemp())
+            # also create the relevant directories from the track name
+            path = Path(self.track_name)
+            (self._staging_path / path.parent.name).mkdir(parents=True, exist_ok=True)
         return self._staging_path
 
     @property
