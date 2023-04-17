@@ -32,4 +32,5 @@ def test_train_audio_dataset_with_transforms(train_audio, birdnet_model_path):
     )
 
     row = next(iter(ds))
+    print(row)
     assert row.shape == (10, 320), "dimensions are incorrect"
