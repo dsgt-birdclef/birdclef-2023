@@ -64,7 +64,7 @@ docker run --rm \
     -it us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/bird-mixit-gpu:latest \
         python scripts/mixit_wrapper.py \
             --input /mnt/data/raw/birdclef-2022/train_audio/afrsil1/XC125458.ogg \
-            --output /mnt/data/processed/mixit/afrisil1/XC125458.ogg \
+            --output /mnt/data/processed/birdclef-2022/mixit/afrisil1/XC125458.ogg \
             --model_name output_sources4 \
             --num_sources 4
 ```
