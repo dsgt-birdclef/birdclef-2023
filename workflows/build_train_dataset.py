@@ -92,26 +92,6 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
     def output(self):
         return single_file_target(Path(self.output_path) / self.track_stem / "_SUCCESS")
 
-    def load_audio_chunks(
-        self, path, target_sr=48_000, chunk_duration=30, chunk_step=30
-    ):
-        native_sr = librosa.get_samplerate(path.as_posix())
-        frame_length = int(chunk_duration * native_sr)
-        hop_length = int(chunk_step * native_sr)
-
-        y_stream = librosa.stream(
-            path.as_posix(),
-            block_length=chunk_step,
-            frame_length=frame_length,
-            hop_length=hop_length,
-        )
-
-        for y in y_stream:
-            y_resampled = librosa.resample(
-                y[:frame_length], orig_sr=native_sr, target_sr=target_sr
-            )
-            yield y_resampled
-
     def process_audio_files(
         self,
         paths,
@@ -119,51 +99,46 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         labels,
         mapped_labels,
         sr=48_000,
-        chunk_duration=30,
-        chunk_step=30,
     ):
         for path in tqdm.tqdm(paths):
-            audio_chunks = self.load_audio_chunks(
-                path, target_sr=sr, chunk_duration=chunk_duration, chunk_step=chunk_step
-            )
-            for y in audio_chunks:
-                X = slice_seconds(y, sr, seconds=3, step=3)
-                pred = prediction_func(X)[0]
-                pred_sigmoid = 1 / (1 + np.exp(-pred))
+            y, sr = librosa.load(path.as_posix(), sr=sr, mono=True)
+            X = slice_seconds(y, sr, seconds=3, step=3)
+            pred = prediction_func(X)[0]
+            pred_sigmoid = 1 / (1 + np.exp(-pred))
 
-                indices = birdnet.rank_indices(pred_sigmoid)
-                for i in range(pred_sigmoid.shape[0]):
-                    predictions = [
-                        {
-                            "index": int(j),
-                            "label": labels[j],
-                            "mapped_label": mapped_labels[j],
-                            "probability": float(pred_sigmoid[i][j]),
-                        }
-                        for rank, j in enumerate(indices)
-                    ]
-                    # sort and add an index for the rank, because each segment
-                    # is ranked by the most common species across the entire
-                    # segment
-                    predictions = [
-                        Row(rank=rank, **row)
-                        for rank, row in enumerate(
-                            sorted(predictions, key=lambda row: -row["probability"])
-                        )
-                    ]
-                    yield Row(
-                        **{
-                            "species": path.parts[-2],
-                            "track_stem": path.stem.split("_")[0],
-                            "track_type": (
-                                path.stem.split("_")[-1] if "_" in path.stem else ""
-                            ),
-                            "track_name": "/".join(path.parts[-2:]),
-                            "embedding": pred[i].tolist(),
-                            "predictions": predictions,
-                            "start_time": i * 3,
-                        }
+            indices = birdnet.rank_indices(pred_sigmoid)
+            for i in range(pred_sigmoid.shape[0]):
+                predictions = [
+                    {
+                        "index": int(j),
+                        "label": labels[j],
+                        "mapped_label": mapped_labels[j],
+                        "probability": float(pred_sigmoid[i][j]),
+                    }
+                    for rank, j in enumerate(indices)
+                ]
+                # sort and add an index for the rank, because each segment
+                # is ranked by the most common species across the entire
+                # segment
+                predictions = [
+                    Row(rank=rank, **row)
+                    for rank, row in enumerate(
+                        sorted(predictions, key=lambda row: -row["probability"])
                     )
+                ]
+                yield Row(
+                    **{
+                        "species": path.parts[-2],
+                        "track_stem": path.stem.split("_")[0],
+                        "track_type": (
+                            path.stem.split("_")[-1] if "_" in path.stem else ""
+                        ),
+                        "track_name": "/".join(path.parts[-2:]),
+                        "embedding": pred[i].tolist(),
+                        "predictions": predictions,
+                        "start_time": i * 3,
+                    }
+                )
 
     def run(self):
         # load the model
