@@ -11,6 +11,7 @@ We do a number of things here:
 We perform this on a per-track basis.
 """
 
+import itertools
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,7 @@ import numpy as np
 import pandas as pd
 import soundfile as sf
 import tqdm
+from pyspark.sql import Row
 
 from birdclef import birdnet
 from birdclef.data.utils import slice_seconds
@@ -90,6 +92,79 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
     def output(self):
         return single_file_target(Path(self.output_path) / self.track_stem / "_SUCCESS")
 
+    def load_audio_chunks(
+        self, path, target_sr=48_000, chunk_duration=30, chunk_step=30
+    ):
+        native_sr = librosa.get_samplerate(path.as_posix())
+        frame_length = int(chunk_duration * native_sr)
+        hop_length = int(chunk_step * native_sr)
+
+        y_stream = librosa.stream(
+            path.as_posix(),
+            block_length=chunk_step,
+            frame_length=frame_length,
+            hop_length=hop_length,
+        )
+
+        for y in y_stream:
+            y_resampled = librosa.resample(
+                y[:frame_length], orig_sr=native_sr, target_sr=target_sr
+            )
+            yield y_resampled
+
+    def process_audio_files(
+        self,
+        paths,
+        prediction_func,
+        labels,
+        mapped_labels,
+        sr=48_000,
+        chunk_duration=30,
+        chunk_step=30,
+    ):
+        for path in tqdm.tqdm(paths):
+            audio_chunks = self.load_audio_chunks(
+                path, target_sr=sr, chunk_duration=chunk_duration, chunk_step=chunk_step
+            )
+            for y in audio_chunks:
+                X = slice_seconds(y, sr, seconds=3, step=3)
+                pred = prediction_func(X)[0]
+                pred_sigmoid = 1 / (1 + np.exp(-pred))
+
+                indices = birdnet.rank_indices(pred_sigmoid)
+                for i in range(pred_sigmoid.shape[0]):
+                    predictions = [
+                        {
+                            "index": int(j),
+                            "label": labels[j],
+                            "mapped_label": mapped_labels[j],
+                            "probability": float(pred_sigmoid[i][j]),
+                        }
+                        for rank, j in enumerate(indices)
+                    ]
+                    # sort and add an index for the rank, because each segment
+                    # is ranked by the most common species across the entire
+                    # segment
+                    predictions = [
+                        Row(rank=rank, **row)
+                        for rank, row in enumerate(
+                            sorted(predictions, key=lambda row: -row["probability"])
+                        )
+                    ]
+                    yield Row(
+                        **{
+                            "species": path.parts[-2],
+                            "track_stem": path.stem.split("_")[0],
+                            "track_type": (
+                                path.stem.split("_")[-1] if "_" in path.stem else ""
+                            ),
+                            "track_name": "/".join(path.parts[-2:]),
+                            "embedding": pred[i].tolist(),
+                            "predictions": predictions,
+                            "start_time": i * 3,
+                        }
+                    )
+
     def run(self):
         # load the model
         repo_path = self.birdnet_root_path
@@ -101,40 +176,17 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         # find all the audio files to process
 
         # load the audio file
-        rows = []
-        paths = sorted(Path(self.input_path).glob(f"{self.track_stem}*"))
-        for path in tqdm.tqdm(paths):
-            y, sr = librosa.load(path.as_posix(), sr=48_000)
-
-            X = slice_seconds(y, sr, seconds=3, step=3)
-            pred = prediction_func(X)[0]
-            pred_sigmoid = 1 / (1 + np.exp(-pred))
-
-            indices = birdnet.rank_indices(pred_sigmoid)
-            for i in range(pred_sigmoid.shape[0]):
-                predictions = [
-                    {
-                        "index": int(j),
-                        "label": labels[j],
-                        "mapped_label": mapped_labels[j],
-                        "probability": float(pred_sigmoid[i][j]),
-                        "rank": rank,
-                    }
-                    for rank, j in enumerate(indices)
-                ]
-                rows.append(
-                    {
-                        "track_name": "/".join(path.parts[-2:]),
-                        "embedding": pred[i].tolist(),
-                        "predictions": predictions,
-                    }
-                )
+        paths = sorted(Path(self.input_path).glob(f"{self.track_stem}*.mp3"))
+        rows = list(
+            self.process_audio_files(paths, prediction_func, labels, mapped_labels)
+        )
         # now with spark, lets write the parquet file
         with spark_resource(cores=self.parallelism) as spark:
             df = spark.createDataFrame(rows)
             assert df.count() > 0, "No rows found in dataframe"
             df.repartition(1).write.parquet(
-                self.output().path,
+                # the output is the success file, but we want the parent directory
+                Path(self.output().path).parent.as_posix(),
                 mode="overwrite",
             )
 
@@ -222,7 +274,7 @@ if __name__ == "__main__":
     train_audio_root = Path(birdclef_root_path) / "train_audio"
     species = sorted([p.name for p in train_audio_root.glob("*")])
 
-    for s in species:
+    for s in species[:1]:
         luigi.build(
             [
                 SpeciesWorkflow(
@@ -230,6 +282,7 @@ if __name__ == "__main__":
                     output_path=output_path,
                     birdnet_root_path=birdnet_root_path,
                     species=s,
+                    limit=4,
                 )
             ],
             workers=max(int(os.cpu_count() / 2), 1),
