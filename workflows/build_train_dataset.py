@@ -249,7 +249,7 @@ if __name__ == "__main__":
     train_audio_root = Path(birdclef_root_path) / "train_audio"
     species = sorted([p.name for p in train_audio_root.glob("*")])
 
-    for s in species[:3]:
+    for s in species:
         luigi.build(
             [
                 SpeciesWorkflow(
