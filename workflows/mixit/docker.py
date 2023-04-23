@@ -46,11 +46,13 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
         # a singleton variable that's set on the first call, hacky solution
         if not hasattr(self, "_staging_path"):
             self._staging_path = Path(tempfile.mkdtemp(prefix="docker-mixit-"))
-            # chown directory to current user
-            os.chown(self._staging_path, os.getuid(), os.getgid())
             # also create the relevant directories from the track name
             path = Path(self.track_name)
-            (self._staging_path / path.parent.name).mkdir(parents=True, exist_ok=True)
+            child = self._staging_path / path.parent.name
+            child.mkdir(parents=True, exist_ok=True)
+            # chown directory to current user
+            os.chown(self._staging_path, os.getuid(), os.getgid())
+            os.chown(child, os.getuid(), os.getgid())
             return self._staging_path
         else:
             return self._staging_path
@@ -105,7 +107,10 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
                 continue
             print(f"Moving {path} to {parent.parent}")
             path.rename(parent.parent / path.parent.name / path.name)
-        shutil.rmtree(self.staging_path)
+        try:
+            shutil.rmtree(self.staging_path)
+        except Exception as e:
+            print(f"unable to delete {self.staging_path}: {e}")
 
 
 if __name__ == "__main__":
