@@ -50,6 +50,18 @@ def split_duration(duration, max_duration):
         return split_duration(duration / 2, max_duration)
 
 
+def duration_parts(duration, max_duration):
+    return np.ceil(duration / split_duration(duration, max_duration)).astype(int)
+
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst.
+    https://stackoverflow.com/a/312464
+    """
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
+
+
 def test_split_duration():
     assert split_duration(10, 3) == 2.5
     assert split_duration(10, 5) == 5
@@ -62,16 +74,26 @@ class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
     output_path = luigi.Parameter()
     track_name = luigi.Parameter()
     noise_alpha = luigi.FloatParameter(default=0.1)
+    duration = luigi.FloatParameter(default=-1)
+    max_duration = luigi.FloatParameter(default=3 * 60)
 
     def output(self):
-        return single_file_target(
-            Path(self.output_path) / self.track_name.replace(".ogg", ".wav")
-        )
+        if self.duration <= 0:
+            return [
+                single_file_target(
+                    Path(self.output_path) / self.track_name.replace(".ogg", ".wav")
+                )
+            ]
+        else:
+            return [
+                single_file_target(
+                    Path(self.output_path)
+                    / self.track_name.replace(".ogg", f"_part{i:03d}.wav")
+                )
+                for i in range(duration_parts(self.duration, self.max_duration))
+            ]
 
-    def run(self):
-        path = Path(self.input_path) / self.track_name
-        y, sr = librosa.load(path.as_posix(), sr=48_000, mono=True)
-
+    def write_wav(self, y, sr, output_path):
         # lets generate noise using the same distribution as the signal. The shape
         # should be rounded up the the nearest 3rd second.
         noise_shape = (int(y.shape[0] / sr // 3) + 1) * 3 * sr
@@ -86,10 +108,6 @@ class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
 
         y_noise = (zero_pad_y * 0.9) + (noise * 0.1)
 
-        # now lets write the file
-        output_path = Path(self.output().path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
         # write this as a temporary wav file
         sf.write(output_path, y_noise, sr)
 
@@ -98,6 +116,23 @@ class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
             if output_path.exists():
                 break
             time.sleep(0.5)
+
+    def run(self):
+        path = Path(self.input_path) / self.track_name
+        y, sr = librosa.load(path.as_posix(), sr=48_000, mono=True)
+
+        # now lets write the files
+        output_path = Path(self.output()[0].path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if self.duration <= 0:
+            self.write_wav(y, sr, output_path)
+        else:
+            duration = split_duration(self.duration, self.max_duration)
+            slices = slice_seconds(y, sr, seconds=duration)
+            paths = [Path(x.path) for x in self.output()]
+            for path, X in zip(paths, slices):
+                self.write_wav(X, sr, path)
 
 
 class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
@@ -118,6 +153,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         self,
         paths,
         prediction_func,
+        embedding_func,
         labels,
         mapped_labels,
         sr=48_000,
@@ -126,6 +162,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
             y, sr = librosa.load(path.as_posix(), sr=sr, mono=True)
             X = slice_seconds(y, sr, seconds=3, step=3)
             pred = prediction_func(X)[0]
+            emb = embedding_func(X)[0]
             pred_sigmoid = 1 / (1 + np.exp(-pred))
 
             indices = birdnet.rank_indices(pred_sigmoid)
@@ -156,7 +193,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
                             path.stem.split("_")[-1] if "_" in path.stem else ""
                         ),
                         "track_name": "/".join(path.parts[-2:]),
-                        "embedding": pred[i].tolist(),
+                        "embedding": emb[i].tolist(),
                         "predictions": predictions,
                         "start_time": i * 3,
                     }
@@ -167,6 +204,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         repo_path = self.birdnet_root_path
         model = birdnet.load_model_from_repo(repo_path)
         prediction_func = birdnet.prediction_func(model)
+        embedding_func = birdnet.embedding_func(model)
         labels = birdnet.load_labels(repo_path)
         mapped_labels = birdnet.load_mapped_labels(repo_path)
 
@@ -175,10 +213,12 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         # load the audio file
         paths = sorted(Path(self.input_path).glob(f"{self.track_stem}*.mp3"))
         rows = list(
-            self.process_audio_files(paths, prediction_func, labels, mapped_labels)
+            self.process_audio_files(
+                paths, prediction_func, embedding_func, labels, mapped_labels
+            )
         )
         # now with spark, lets write the parquet file
-        with spark_resource(cores=self.parallelism) as spark:
+        with spark_resource(cores=self.parallelism, memory="2g") as spark:
             df = spark.createDataFrame(rows)
             assert df.count() > 0, "No rows found in dataframe"
             df.repartition(1).write.parquet(
@@ -193,8 +233,8 @@ class TrackWorkflow(luigi.Task):
     output_path = luigi.Parameter()
     birdnet_root_path = luigi.Parameter()
     track_name = luigi.Parameter()
-    duration = luigi.IntParameter(default=-1)
-    max_duration = luigi.IntParameter(default=3 * 60)
+    duration = luigi.FloatParameter(default=-1)
+    max_duration = luigi.FloatParameter(default=3 * 60)
 
     def output(self):
         outputs = [
@@ -205,127 +245,45 @@ class TrackWorkflow(luigi.Task):
                 / "_SUCCESS"
             )
         ]
-        if duration > 0:
-            parts = int(duration / split_duration(duration, max_duration))
-            outputs.extend(
-                # wav parts
-                [
-                    single_file_target(
-                        Path(self.output_path)
-                        / "audio"
-                        / self.track_name.replace(".ogg", f"_part{i:03d}.wav")
-                    )
-                    for i in range(parts)
-                ]
-                # mp3 parts
-                + [
-                    single_file_target(
-                        Path(self.output_path)
-                        / "audio"
-                        / self.track_name.replace(".ogg", f"_part{i:03d}.mp3")
-                    )
-                    for i in range(parts)
-                ]
-                # mixit parts
-                + [
-                    single_file_target(
-                        Path(self.output_path)
-                        / "audio"
-                        / self.track_name.replace(".ogg", f"_part{i:03d}_source{j}.mp3")
-                    )
-                    for i in range(parts)
-                    for j in range(4)
-                ]
-            )
-        else:
-            outputs.extend(
-                [
-                    single_file_target(
-                        Path(self.output_path)
-                        / "audio"
-                        / self.track_name.replace(".ogg", ".wav")
-                    ),
-                    single_file_target(
-                        Path(self.output_path)
-                        / "audio"
-                        / self.track_name.replace(".ogg", ".mp3")
-                    ),
-                    *[
-                        single_file_target(
-                            Path(self.output_path)
-                            / "audio"
-                            / self.track_name.replace(".ogg", f"_source{i}.mp3")
-                        )
-                        for i in range(4)
-                    ],
-                ]
-            )
 
     def run(self):
         pad_noise = yield PadAudioNoise(
             input_path=f"{self.birdclef_root_path}/train_audio",
             output_path=f"{self.output_path}/audio",
             track_name=self.track_name,
+            duration=self.duration,
+            max_duration=self.max_duration,
         )
+        deps = []
+        for output in pad_noise:
+            wav_track_name = "/".join(output.path.split("/")[-2:])
+            convert_mp3 = ToMP3Single(
+                input_path=f"{self.output_path}/audio",
+                output_path=f"{self.output_path}/audio",
+                track_name=wav_track_name,
+                input_ext=".wav",
+                dynamic_requires=pad_noise,
+            )
+            mixit = MixitDockerTask(
+                input_path=f"{self.output_path}/audio",
+                output_path=f"{self.output_path}/audio",
+                track_name=wav_track_name,
+                num_sources=4,
+                dynamic_requires=pad_noise,
+            )
+            deps.append(convert_mp3)
+            deps.append(mixit)
+        dep_output = yield deps
+        dep_output = [(d if isinstance(d, list) else [d]) for d in dep_output]
+        dep_output = [item for sublist in dep_output for item in sublist]
 
-        wav_track_name = self.track_name.replace(".ogg", ".wav")
-
-        convert_mp3 = yield ToMP3Single(
-            input_path=f"{self.output_path}/audio",
-            output_path=f"{self.output_path}/audio",
-            track_name=wav_track_name,
-            input_ext=".wav",
-            dynamic_requires=[pad_noise],
-        )
-
-        mixit = yield MixitDockerTask(
-            input_path=f"{self.output_path}/audio",
-            output_path=f"{self.output_path}/audio",
-            track_name=wav_track_name,
-            num_sources=4,
-            dynamic_requires=[pad_noise],
-        )
-        # yield [convert_mp3, mixit]
-
-        extract_embedding = ExtractEmbedding(
+        yield ExtractEmbedding(
             input_path=f"{self.output_path}/audio",
             output_path=f"{self.output_path}/embeddings",
             track_name=self.track_name,
             birdnet_root_path=self.birdnet_root_path,
-            dynamic_requires=[pad_noise, convert_mp3, mixit],
+            dynamic_requires=[pad_noise] + dep_output,
         )
-        yield extract_embedding
-
-
-class SpeciesWorkflow(luigi.WrapperTask):
-    birdclef_root_path = luigi.Parameter()
-    output_path = luigi.Parameter()
-    birdnet_root_path = luigi.Parameter()
-    species = luigi.Parameter()
-    limit = luigi.IntParameter(default=-1)
-
-    def requires(self):
-        species_root = Path(self.birdclef_root_path) / "train_audio" / self.species
-        track_names = sorted(
-            ["/".join(p.parts[-2:]) for p in species_root.glob("*.ogg")]
-        )
-        if self.limit > 0:
-            track_names = track_names[: self.limit]
-        for track_name in track_names:
-            yield TrackWorkflow(
-                birdclef_root_path=self.birdclef_root_path,
-                output_path=self.output_path,
-                birdnet_root_path=self.birdnet_root_path,
-                track_name=track_name,
-            )
-
-
-def chunks(lst, n):
-    """Yield successive n-sized chunks from lst.
-    https://stackoverflow.com/a/312464
-    """
-    for i in range(0, len(lst), n):
-        yield lst[i : i + n]
 
 
 if __name__ == "__main__":
@@ -337,7 +295,7 @@ if __name__ == "__main__":
     train_audio_root = Path(birdclef_root_path) / "train_audio"
     species = sorted([p.name for p in train_audio_root.glob("*")])
 
-    # this doesn't work super well for a couple different reasons:
+    # this doesn't work super well for a couple different reasonqs:
     # 1. there are a lot of small files, so the overhead of running luigi is high
     # 2. the species are not evenly distributed, so some species will take a long time
     # 3. we can get stuck on super long audio files...
@@ -358,20 +316,21 @@ if __name__ == "__main__":
     #         log_level="INFO",
     #     )
 
-    batch_size = 10
+    batch_size = 100
     workers = max(int(os.cpu_count() / 2 * 3 / 4), 1)
-    track_names = sorted(
-        ["/".join(p.parts[-2:]) for p in train_audio_root.glob("**/*.ogg")]
-    )
+    with spark_resource(2, "2g") as spark:
+        # "gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet"
+        train_durations = spark.read.parquet(
+            "data/processed/birdclef-2023/train_durations_v2.parquet"
+        )
+        df = train_durations.toPandas()
+
+    track_names = [(r.filename, r.duration) for r in df.itertuples()]
     random.shuffle(track_names)
     # check if the track embedding has already been computed
+    # track_names = [t for t in track_names if "grecor/XC629875" in t[0]]
     track_names = [
-        t
-        for t in track_names
-        # if not (
-        #     Path(output_path) / "embeddings" / t.replace(".ogg", "") / "_SUCCESS"
-        # ).exists()
-        if "grecor/XC629875" in t
+        t for t in track_names if Path(t[0]).parts[0] in ["barswa", "wlwwar", "eaywag1"]
     ]
     print(f"Found {len(track_names)} tracks to process")
 
@@ -386,8 +345,9 @@ if __name__ == "__main__":
                     output_path=output_path,
                     birdnet_root_path=birdnet_root_path,
                     track_name=t,
+                    duration=d,
                 )
-                for t in batch
+                for (t, d) in batch
             ],
             workers=workers,
             scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
@@ -395,3 +355,4 @@ if __name__ == "__main__":
             # get the full response so we can check for errors
             detailed_summary=True,
         )
+        break

@@ -5,8 +5,8 @@ import torch
 
 def slice_seconds(data, sample_rate, seconds=3, pad_seconds=0, step=None):
     # compute step size
-    k = sample_rate * seconds
-    pad = sample_rate * pad_seconds
+    k = int(sample_rate * seconds)
+    pad = int(sample_rate * pad_seconds)
     step = k + pad if step is None else int(sample_rate * step)
 
     remainder = len(data) % step
