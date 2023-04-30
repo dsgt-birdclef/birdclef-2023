@@ -14,6 +14,8 @@ We perform this on a per-track basis.
 import itertools
 import json
 import os
+from functools import partial
+from multiprocessing import Pool
 from pathlib import Path
 
 import librosa
@@ -240,6 +242,23 @@ class SpeciesWorkflow(luigi.WrapperTask):
             )
 
 
+def _process_batch(birdclef_root_path, output_path, birdnet_root_path, batch):
+    luigi.build(
+        [
+            TrackWorkflow(
+                birdclef_root_path=birdclef_root_path,
+                output_path=output_path,
+                birdnet_root_path=birdnet_root_path,
+                track_name=t,
+            )
+            for t in batch
+        ],
+        workers=max(int(os.cpu_count() / 2), 1),
+        scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+        log_level="INFO",
+    )
+
+
 if __name__ == "__main__":
     birdclef_root_path = "data/raw/birdclef-2023"
     output_path = "data/processed/birdclef-2023/train_embeddings"
@@ -249,18 +268,30 @@ if __name__ == "__main__":
     train_audio_root = Path(birdclef_root_path) / "train_audio"
     species = sorted([p.name for p in train_audio_root.glob("*")])
 
-    for s in species:
-        luigi.build(
-            [
-                SpeciesWorkflow(
-                    birdclef_root_path=birdclef_root_path,
-                    output_path=output_path,
-                    birdnet_root_path=birdnet_root_path,
-                    species=s,
-                    # limit=4,
-                )
-            ],
-            workers=max(int(os.cpu_count() / 2), 1),
-            scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
-            log_level="INFO",
-        )
+    # for s in species:
+    #     luigi.build(
+    #         [
+    #             SpeciesWorkflow(
+    #                 birdclef_root_path=birdclef_root_path,
+    #                 output_path=output_path,
+    #                 birdnet_root_path=birdnet_root_path,
+    #                 species=s,
+    #                 # limit=4,
+    #             )
+    #         ],
+    #         workers=max(int(os.cpu_count() / 2), 1),
+    #         # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+    #         log_level="INFO",
+    #     )
+
+    batch_size = 100
+    track_names = sorted(
+        ["/".join(p.parts[-2:]) for p in train_audio_root.glob("**/*.ogg")]
+    )
+    track_batches = [
+        track_names[i : i + batch_size] for i in range(0, len(track_names), batch_size)
+    ]
+    func = partial(_process_batch, birdclef_root_path, output_path, birdnet_root_path)
+    with Pool(processes=2) as pool:
+        for _ in pool.imap(func, track_batches):
+            pass

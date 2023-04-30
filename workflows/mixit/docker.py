@@ -45,7 +45,7 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     def staging_path(self):
         # a singleton variable that's set on the first call, hacky solution
         if not hasattr(self, "_staging_path"):
-            self._staging_path = Path(tempfile.mkdtemp(prefix="docker-mixit-"))
+            self._staging_path = Path(tempfile.mkdtemp(prefix="/tmp/docker-mixit/"))
             # also create the relevant directories from the track name
             path = Path(self.track_name)
             child = self._staging_path / path.parent.name
