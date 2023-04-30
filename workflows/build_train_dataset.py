@@ -317,7 +317,7 @@ if __name__ == "__main__":
     #     )
 
     batch_size = 100
-    workers = max(int(os.cpu_count() / 2 * 3 / 4), 1)
+    workers = max(int(os.cpu_count() / 2), 1)
     with spark_resource(2, "2g") as spark:
         # "gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet"
         train_durations = spark.read.parquet(

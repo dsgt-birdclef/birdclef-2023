@@ -43,7 +43,7 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     def staging_path(self):
         # a singleton variable that's set on the first call, hacky solution
         if not hasattr(self, "_staging_path"):
-            tmp_root = "/run/docker-mixit/"
+            tmp_root = f"/run/user/{os.getuid()}/docker-mixit"
             if not Path(tmp_root).exists():
                 Path(tmp_root).mkdir(parents=True, exist_ok=True)
             self._staging_path = Path(tempfile.mkdtemp(prefix=tmp_root))
@@ -107,7 +107,7 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
             if path.is_dir():
                 continue
             print(f"Moving {path} to {parent.parent}")
-            path.rename(parent.parent / path.parent.name / path.name)
+            shutil.move(path, parent.parent / path.parent.name / path.name)
         try:
             shutil.rmtree(self.staging_path)
         except Exception as e:
