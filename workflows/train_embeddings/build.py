@@ -218,7 +218,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
             )
         )
         # now with spark, lets write the parquet file
-        with spark_resource(cores=self.parallelism, memory="2g") as spark:
+        with spark_resource(cores=self.parallelism) as spark:
             df = spark.createDataFrame(rows)
             assert df.count() > 0, "No rows found in dataframe"
             df.repartition(1).write.parquet(
@@ -316,10 +316,10 @@ if __name__ == "__main__":
     #         log_level="INFO",
     #     )
 
-    batch_size = 100
-    workers = max(int(os.cpu_count() / 2), 1)
+    batch_size = 250
+    workers = max(int(os.cpu_count() / 4), 1)
     with spark_resource(2, "2g") as spark:
-        # "gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet"
+        # gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet
         train_durations = spark.read.parquet(
             "data/processed/birdclef-2023/train_durations_v2.parquet"
         )
@@ -355,4 +355,3 @@ if __name__ == "__main__":
             # get the full response so we can check for errors
             detailed_summary=True,
         )
-        break
