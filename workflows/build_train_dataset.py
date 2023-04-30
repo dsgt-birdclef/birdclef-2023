@@ -184,16 +184,15 @@ class TrackWorkflow(luigi.Task):
         )
 
     def run(self):
-        pad_noise = PadAudioNoise(
+        pad_noise = yield PadAudioNoise(
             input_path=f"{self.birdclef_root_path}/train_audio",
             output_path=f"{self.output_path}/audio",
             track_name=self.track_name,
         )
-        yield pad_noise
 
         wav_track_name = self.track_name.replace(".ogg", ".wav")
 
-        convert_mp3 = ToMP3Single(
+        convert_mp3 = yield ToMP3Single(
             input_path=f"{self.output_path}/audio",
             output_path=f"{self.output_path}/audio",
             track_name=wav_track_name,
@@ -201,14 +200,14 @@ class TrackWorkflow(luigi.Task):
             dynamic_requires=[pad_noise],
         )
 
-        mixit = MixitDockerTask(
+        mixit = yield MixitDockerTask(
             input_path=f"{self.output_path}/audio",
             output_path=f"{self.output_path}/audio",
             track_name=wav_track_name,
             num_sources=4,
             dynamic_requires=[pad_noise],
         )
-        yield [convert_mp3, mixit]
+        # yield [convert_mp3, mixit]
 
         extract_embedding = ExtractEmbedding(
             input_path=f"{self.output_path}/audio",
@@ -243,6 +242,14 @@ class SpeciesWorkflow(luigi.WrapperTask):
             )
 
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst.
+    https://stackoverflow.com/a/312464
+    """
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
+
+
 if __name__ == "__main__":
     birdclef_root_path = "data/raw/birdclef-2023"
     output_path = "data/processed/birdclef-2023/train_embeddings"
@@ -273,20 +280,27 @@ if __name__ == "__main__":
     #         log_level="INFO",
     #     )
 
-    batch_size = 250
+    batch_size = 10
     workers = max(int(os.cpu_count() / 2 * 3 / 4), 1)
     track_names = sorted(
         ["/".join(p.parts[-2:]) for p in train_audio_root.glob("**/*.ogg")]
     )
+    random.shuffle(track_names)
+    # check if the track embedding has already been computed
+    # track_names = [
+    #     t
+    #     for t in track_names
+    #     if not (
+    #         Path(output_path) / "embeddings" / t.replace(".ogg", "") / "_SUCCESS"
+    #     ).exists()
+    # ]
+    print(f"Found {len(track_names)} tracks to process")
+
     # Actually, let's shuffle the tracks first so we don't get stuck on the same
     # tracks over and over. We can decrease the likelihood of getting stuck on
     # a single track by increasing the number luigi processes.
-    random.shuffle(track_names)
-    track_batches = [
-        track_names[i : i + batch_size] for i in range(0, len(track_names), batch_size)
-    ]
-    for batch in track_batches:
-        luigi.build(
+    for batch in chunks(track_names, batch_size):
+        res = luigi.build(
             [
                 TrackWorkflow(
                     birdclef_root_path=birdclef_root_path,
@@ -297,6 +311,8 @@ if __name__ == "__main__":
                 for t in batch
             ],
             workers=workers,
-            scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+            # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
             log_level="INFO",
+            # get the full response so we can check for errors
+            detailed_summary=True,
         )
