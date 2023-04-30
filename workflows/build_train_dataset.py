@@ -274,7 +274,7 @@ if __name__ == "__main__":
     #     )
 
     batch_size = 250
-    workers = max(int(os.cpu_count() / 2), 1)
+    workers = max(int(os.cpu_count() / 2 * 3 / 4), 1)
     track_names = sorted(
         ["/".join(p.parts[-2:]) for p in train_audio_root.glob("**/*.ogg")]
     )

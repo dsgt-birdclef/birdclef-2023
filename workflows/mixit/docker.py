@@ -15,7 +15,7 @@ from workflows.utils.mixin import DynamicRequiresMixin
 class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     """Run Mixit on an audio file."""
 
-    resources = {"max_workers": 2} if torch.cuda.is_available() else {}
+    resources = {"max_workers": 2} if torch.cuda.is_available() else {"max_workers": 4}
 
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
