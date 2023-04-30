@@ -38,6 +38,25 @@ from workflows.utils.mixin import DynamicRequiresMixin
 from workflows.utils.rsync import GSUtilRsyncTask
 
 
+def split_duration(duration, max_duration):
+    """Split a duration into intervals that is at most max_duration.
+
+    We do this by splitting the duration in half until we get a duration that is
+    less than the max_duration.
+    """
+    if duration <= max_duration:
+        return duration
+    else:
+        return split_duration(duration / 2, max_duration)
+
+
+def test_split_duration():
+    assert split_duration(10, 3) == 2.5
+    assert split_duration(10, 5) == 5
+    assert split_duration(10, 10) == 10
+    assert split_duration(10, 11) == 10
+
+
 class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
@@ -174,14 +193,73 @@ class TrackWorkflow(luigi.Task):
     output_path = luigi.Parameter()
     birdnet_root_path = luigi.Parameter()
     track_name = luigi.Parameter()
+    duration = luigi.IntParameter(default=-1)
+    max_duration = luigi.IntParameter(default=3 * 60)
 
     def output(self):
-        return single_file_target(
-            Path(self.output_path)
-            / "embeddings"
-            / self.track_name.replace(".ogg", "")
-            / "_SUCCESS"
-        )
+        outputs = [
+            single_file_target(
+                Path(self.output_path)
+                / "embeddings"
+                / self.track_name.replace(".ogg", "")
+                / "_SUCCESS"
+            )
+        ]
+        if duration > 0:
+            parts = int(duration / split_duration(duration, max_duration))
+            outputs.extend(
+                # wav parts
+                [
+                    single_file_target(
+                        Path(self.output_path)
+                        / "audio"
+                        / self.track_name.replace(".ogg", f"_part{i:03d}.wav")
+                    )
+                    for i in range(parts)
+                ]
+                # mp3 parts
+                + [
+                    single_file_target(
+                        Path(self.output_path)
+                        / "audio"
+                        / self.track_name.replace(".ogg", f"_part{i:03d}.mp3")
+                    )
+                    for i in range(parts)
+                ]
+                # mixit parts
+                + [
+                    single_file_target(
+                        Path(self.output_path)
+                        / "audio"
+                        / self.track_name.replace(".ogg", f"_part{i:03d}_source{j}.mp3")
+                    )
+                    for i in range(parts)
+                    for j in range(4)
+                ]
+            )
+        else:
+            outputs.extend(
+                [
+                    single_file_target(
+                        Path(self.output_path)
+                        / "audio"
+                        / self.track_name.replace(".ogg", ".wav")
+                    ),
+                    single_file_target(
+                        Path(self.output_path)
+                        / "audio"
+                        / self.track_name.replace(".ogg", ".mp3")
+                    ),
+                    *[
+                        single_file_target(
+                            Path(self.output_path)
+                            / "audio"
+                            / self.track_name.replace(".ogg", f"_source{i}.mp3")
+                        )
+                        for i in range(4)
+                    ],
+                ]
+            )
 
     def run(self):
         pad_noise = yield PadAudioNoise(
@@ -287,13 +365,14 @@ if __name__ == "__main__":
     )
     random.shuffle(track_names)
     # check if the track embedding has already been computed
-    # track_names = [
-    #     t
-    #     for t in track_names
-    #     if not (
-    #         Path(output_path) / "embeddings" / t.replace(".ogg", "") / "_SUCCESS"
-    #     ).exists()
-    # ]
+    track_names = [
+        t
+        for t in track_names
+        # if not (
+        #     Path(output_path) / "embeddings" / t.replace(".ogg", "") / "_SUCCESS"
+        # ).exists()
+        if "grecor/XC629875" in t
+    ]
     print(f"Found {len(track_names)} tracks to process")
 
     # Actually, let's shuffle the tracks first so we don't get stuck on the same
@@ -311,7 +390,7 @@ if __name__ == "__main__":
                 for t in batch
             ],
             workers=workers,
-            # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+            scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
             log_level="INFO",
             # get the full response so we can check for errors
             detailed_summary=True,
