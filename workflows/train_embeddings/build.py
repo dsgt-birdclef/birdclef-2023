@@ -78,19 +78,19 @@ class PadAudioNoise(luigi.Task, DynamicRequiresMixin):
     max_duration = luigi.FloatParameter(default=3 * 60)
 
     def output(self):
-        if self.duration <= 0:
-            return [
-                single_file_target(
-                    Path(self.output_path) / self.track_name.replace(".ogg", ".wav")
-                )
-            ]
-        else:
+        if self.duration > 0 and self.duration > self.max_duration:
             return [
                 single_file_target(
                     Path(self.output_path)
                     / self.track_name.replace(".ogg", f"_part{i:03d}.wav")
                 )
                 for i in range(duration_parts(self.duration, self.max_duration))
+            ]
+        else:
+            return [
+                single_file_target(
+                    Path(self.output_path) / self.track_name.replace(".ogg", ".wav")
+                )
             ]
 
     def write_wav(self, y, sr, output_path):
@@ -188,14 +188,18 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
                 yield Row(
                     **{
                         "species": path.parts[-2],
-                        "track_stem": path.stem.split("_")[0],
+                        "track_stem": path.stem.split("_source")[0],
                         "track_type": (
-                            path.stem.split("_")[-1] if "_" in path.stem else ""
+                            path.stem.split("_")[-1]
+                            if "source" in path.stem
+                            else "original"
                         ),
                         "track_name": "/".join(path.parts[-2:]),
-                        "embedding": emb[i].tolist(),
+                        "embedding": emb[i].astype(float).tolist(),
+                        "prediction_vec": pred[i].astype(float).tolist(),
                         "predictions": predictions,
                         "start_time": i * 3,
+                        "energy": float(np.sum(X[i] ** 2)),
                     }
                 )
 
@@ -203,10 +207,6 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         # load the model
         repo_path = self.birdnet_root_path
         model = birdnet.load_model_from_repo(repo_path)
-        prediction_func = birdnet.prediction_func(model)
-        embedding_func = birdnet.embedding_func(model)
-        labels = birdnet.load_labels(repo_path)
-        mapped_labels = birdnet.load_mapped_labels(repo_path)
 
         # find all the audio files to process
 
@@ -214,14 +214,18 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
         paths = sorted(Path(self.input_path).glob(f"{self.track_stem}*.mp3"))
         rows = list(
             self.process_audio_files(
-                paths, prediction_func, embedding_func, labels, mapped_labels
+                paths,
+                birdnet.prediction_func(model),
+                birdnet.embedding_func(model),
+                birdnet.load_labels(repo_path),
+                birdnet.load_mapped_labels(repo_path),
             )
         )
         # now with spark, lets write the parquet file
         with spark_resource(cores=self.parallelism) as spark:
             df = spark.createDataFrame(rows)
             assert df.count() > 0, "No rows found in dataframe"
-            df.repartition(1).write.parquet(
+            df.coalesce(2).write.parquet(
                 # the output is the success file, but we want the parent directory
                 Path(self.output().path).parent.as_posix(),
                 mode="overwrite",
@@ -317,20 +321,18 @@ if __name__ == "__main__":
     #     )
 
     batch_size = 250
-    workers = max(int(os.cpu_count() / 4), 1)
-    with spark_resource(2, "2g") as spark:
-        # gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet
-        train_durations = spark.read.parquet(
-            "data/processed/birdclef-2023/train_durations_v2.parquet"
-        )
-        df = train_durations.toPandas()
+    workers = max(int(os.cpu_count() * 3 / 8), 1)
+    # gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet
+    df = pd.read_parquet("data/processed/birdclef-2023/train_durations_v2.parquet")
 
     track_names = [(r.filename, r.duration) for r in df.itertuples()]
     random.shuffle(track_names)
     # check if the track embedding has already been computed
-    # track_names = [t for t in track_names if "grecor/XC629875" in t[0]]
+    # track_names = [t for t in track_names if "bltapa1/XC621907" in t[0]]
     track_names = [
-        t for t in track_names if Path(t[0]).parts[0] in ["barswa", "wlwwar", "eaywag1"]
+        t
+        for t in track_names
+        if Path(t[0]).parts[0] in ["refwar2", "bltapa1", "malkin1"]
     ]
     print(f"Found {len(track_names)} tracks to process")
 
