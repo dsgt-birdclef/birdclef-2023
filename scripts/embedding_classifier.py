@@ -3,12 +3,13 @@ import pickle
 from birdclef.utils import get_spark
 import pyspark.sql.functions as F
 from pyspark.sql.functions import concat, rand
+import csv
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=["logistic_reg_3"], required=True, type=str)
     parser.add_argument("--input", "--i", required=True, type=str)
-    # parser.add_argument("--output", "--o", required=True, type=str)
+    parser.add_argument("--output", "--o", required=True, type=str)
     args, other_args = parser.parse_known_args()
     args = vars(args)
 
@@ -55,7 +56,7 @@ def main():
 
     model = pickle.load(open(f"../models/{args['model']}.pkl", 'rb'))
 
-    result = model.predict(x)
+    result = model.predict_proba(x)
 
     print(result)
 
