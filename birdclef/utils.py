@@ -21,8 +21,10 @@ def get_spark(cores=8, memory="8g"):
 @contextmanager
 def spark_resource(*args, **kwargs):
     """A context manager for a spark session."""
-    spark = get_spark(*args, **kwargs)
+    spark = None
     try:
+        spark = get_spark(*args, **kwargs)
         yield spark
     finally:
-        spark.stop()
+        if spark is not None:
+            spark.stop()

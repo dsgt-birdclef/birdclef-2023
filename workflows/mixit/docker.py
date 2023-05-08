@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import tempfile
@@ -13,8 +14,6 @@ from workflows.utils.mixin import DynamicRequiresMixin
 
 class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     """Run Mixit on an audio file."""
-
-    resources = {"max_workers": 2} if torch.cuda.is_available() else {}
 
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
@@ -37,23 +36,40 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
         if torch.cuda.is_available()
         else {}
     )
+    # We don't need this, and cause more issus than it solves
+    mount_tmp = False
 
     @property
     def staging_path(self):
         # a singleton variable that's set on the first call, hacky solution
         if not hasattr(self, "_staging_path"):
-            self._staging_path = Path(tempfile.mkdtemp())
+            tmp_root = f"/run/user/{os.getuid()}/docker-mixit"
+            if not Path(tmp_root).exists():
+                Path(tmp_root).mkdir(parents=True, exist_ok=True)
+            self._staging_path = Path(tempfile.mkdtemp(prefix=tmp_root))
             # also create the relevant directories from the track name
             path = Path(self.track_name)
-            (self._staging_path / path.parent.name).mkdir(parents=True, exist_ok=True)
-        return self._staging_path
+            child = self._staging_path / path.parent.name
+            child.mkdir(parents=True, exist_ok=True)
+            # chown directory to current user
+            os.chown(self._staging_path, os.getuid(), os.getgid())
+            os.chown(child, os.getuid(), os.getgid())
+            return self._staging_path
+        else:
+            return self._staging_path
 
     @property
     def binds(self):
         root = Path("./data").absolute()
+        path = Path(self.track_name)
         return [
-            f"{root}:/mnt/data",
-            f"{self.staging_path}:/mnt/staging_output",
+            f"{root}:/mnt/data:ro",
+            # NOTE: we mount the specific parent folder that contains the track,
+            # otherwise we run into permission issues when writing the output.
+            # Why? I don't know...
+            f"{self.staging_path}/{path.parent.name}:/mnt/staging_output/{path.parent.name}",
+            # NOTE: it can be helpful mount the script into the container
+            # f"{Path('./scripts').absolute()}:/app/scripts:ro",
         ]
 
     def output(self):
@@ -79,6 +95,9 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
         )
 
     def run(self):
+        logging.info(f"container options: {self.container_options}")
+        logging.info(f"host config options: {self.host_config_options}")
+        logging.info(f"binds: {self.binds}")
         super().run()
         # move the intermediate results to the output, ensuring parents exist
         parent = Path(self.output()[0].path).parent
@@ -88,8 +107,11 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
             if path.is_dir():
                 continue
             print(f"Moving {path} to {parent.parent}")
-            path.rename(parent.parent / path.parent.name / path.name)
-        shutil.rmtree(self.staging_path)
+            shutil.move(path, parent.parent / path.parent.name / path.name)
+        try:
+            shutil.rmtree(self.staging_path)
+        except Exception as e:
+            print(f"unable to delete {self.staging_path}: {e}")
 
 
 if __name__ == "__main__":

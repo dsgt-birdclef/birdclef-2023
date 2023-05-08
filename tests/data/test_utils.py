@@ -1,6 +1,6 @@
 import numpy as np
 
-from birdclef.data.utils import slice_seconds_indexed
+from birdclef.data.utils import slice_seconds, slice_seconds_indexed
 
 
 def test_slice_seconds_indexed_right_pad():
@@ -24,3 +24,9 @@ def test_slice_seconds_indexed_step_size():
     res = slice_seconds_indexed(x, 1, 4, step=2)
     print(res)
     assert len(res) == 7
+
+
+def test_slice_seconds_float():
+    x = np.arange(10)
+    res = slice_seconds(x, 1, 1.0)
+    assert len(res) == 10

@@ -65,7 +65,8 @@ def main():
 
     # for each of the output files, copy them into the output directory
     output_path = Path(args.output).parent
-    output_path.mkdir(parents=True, exist_ok=True)
+    if not output_path.exists():
+        output_path.mkdir(parents=True)
     for p in Path("/tmp").glob(f"{output_name}_source*.wav"):
         if args.output_format == "ogg":
             output = output_path / p.name.replace("wav", "ogg")

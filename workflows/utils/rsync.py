@@ -13,6 +13,7 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
     input_path = luigi.Parameter()
     output_path = luigi.Parameter()
     is_dir = luigi.BoolParameter(default=True)
+    touch_success = luigi.BoolParameter(default=True)
     capture_output = True
 
     def program_args(self):
@@ -25,8 +26,8 @@ class GSUtilRsyncTask(ExternalProgramTask, DynamicRequiresMixin):
                 "bash",
                 "-ce",
                 (
-                    f"gsutil -m rsync -r {in_path}/ {out_path}/ && "
-                    f"touch {out_path}/_SUCCESS"
+                    f"gsutil -m rsync -r {in_path}/ {out_path}/"
+                    + (f" && touch {out_path}/_SUCCESS" if self.touch_success else "")
                 ),
             ]
         else:
