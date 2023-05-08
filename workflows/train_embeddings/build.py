@@ -15,6 +15,7 @@ import itertools
 import json
 import os
 import random
+from argparse import ArgumentParser
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
@@ -58,6 +59,8 @@ def chunks(lst, n):
     """Yield successive n-sized chunks from lst.
     https://stackoverflow.com/a/312464
     """
+    if n < 1:
+        yield lst
     for i in range(0, len(lst), n):
         yield lst[i : i + n]
 
@@ -249,6 +252,7 @@ class TrackWorkflow(luigi.Task):
                 / "_SUCCESS"
             )
         ]
+        return outputs
 
     def run(self):
         pad_noise = yield PadAudioNoise(
@@ -290,13 +294,28 @@ class TrackWorkflow(luigi.Task):
         )
 
 
-if __name__ == "__main__":
-    birdclef_root_path = "data/raw/birdclef-2023"
-    output_path = "data/processed/birdclef-2023/train_embeddings"
-    birdnet_root_path = "data/models/birdnet-analyzer-pruned"
-    species_limit = -1
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument("--birdclef-root-path", default="data/raw/birdclef-2023")
+    parser.add_argument(
+        "--output-path", default="data/processed/birdclef-2023/train_embeddings"
+    )
+    parser.add_argument(
+        "--birdnet-root-path", default="data/models/birdnet-analyzer-pruned"
+    )
+    parser.add_argument("--species-limit", default=-1, type=int)
+    parser.add_argument("--skip-existing", action="store_true")
+    parser.add_argument("--batch-size", default=100, type=int)
+    parser.add_argument(
+        "--workers", default=max(int(os.cpu_count() * 3 / 8), 1), type=int
+    )
+    return parser.parse_args()
 
-    train_audio_root = Path(birdclef_root_path) / "train_audio"
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    train_audio_root = Path(args.birdclef_root_path) / "train_audio"
     species = sorted([p.name for p in train_audio_root.glob("*")])
 
     # this doesn't work super well for a couple different reasonqs:
@@ -319,39 +338,42 @@ if __name__ == "__main__":
     #         # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
     #         log_level="INFO",
     #     )
-
-    batch_size = 250
-    workers = max(int(os.cpu_count() * 3 / 8), 1)
     # gs://birdclef-2023/data/processed/birdclef-2023/train_durations_v2.parquet
     df = pd.read_parquet("data/processed/birdclef-2023/train_durations_v2.parquet")
 
     track_names = [(r.filename, r.duration) for r in df.itertuples()]
     random.shuffle(track_names)
-    # check if the track embedding has already been computed
+    if args.skip_existing:
+        # check if the track embedding has already been computed
+        track_names = [
+            t
+            for t in track_names
+            if not (
+                Path(args.output_path)
+                / "embeddings"
+                / t[0].replace(".ogg", "")
+                / "_SUCCESS"
+            ).exists()
+        ]
     # track_names = [t for t in track_names if "bltapa1/XC621907" in t[0]]
-    track_names = [
-        t
-        for t in track_names
-        if Path(t[0]).parts[0] in ["refwar2", "bltapa1", "malkin1"]
-    ]
     print(f"Found {len(track_names)} tracks to process")
 
     # Actually, let's shuffle the tracks first so we don't get stuck on the same
     # tracks over and over. We can decrease the likelihood of getting stuck on
     # a single track by increasing the number luigi processes.
-    for batch in chunks(track_names, batch_size):
+    for batch in chunks(track_names, args.batch_size):
         res = luigi.build(
             [
                 TrackWorkflow(
-                    birdclef_root_path=birdclef_root_path,
-                    output_path=output_path,
-                    birdnet_root_path=birdnet_root_path,
+                    birdclef_root_path=args.birdclef_root_path,
+                    output_path=args.output_path,
+                    birdnet_root_path=args.birdnet_root_path,
                     track_name=t,
                     duration=d,
                 )
                 for (t, d) in batch
             ],
-            workers=workers,
+            workers=args.workers,
             scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
             log_level="INFO",
             # get the full response so we can check for errors
