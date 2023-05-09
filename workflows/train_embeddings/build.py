@@ -303,8 +303,8 @@ def parse_args():
     parser.add_argument(
         "--birdnet-root-path", default="data/models/birdnet-analyzer-pruned"
     )
-    parser.add_argument("--species-limit", default=-1, type=int)
     parser.add_argument("--skip-existing", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--batch-size", default=100, type=int)
     parser.add_argument(
         "--workers", default=max(int(os.cpu_count() * 3 / 8), 1), type=int
@@ -357,6 +357,8 @@ if __name__ == "__main__":
         ]
     # track_names = [t for t in track_names if "bltapa1/XC621907" in t[0]]
     print(f"Found {len(track_names)} tracks to process")
+    if args.dry_run:
+        exit(0)
 
     # Actually, let's shuffle the tracks first so we don't get stuck on the same
     # tracks over and over. We can decrease the likelihood of getting stuck on
