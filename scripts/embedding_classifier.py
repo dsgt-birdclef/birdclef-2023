@@ -1,9 +1,12 @@
 import argparse
+import csv
 import pickle
-from birdclef.utils import get_spark
+
 import pyspark.sql.functions as F
 from pyspark.sql.functions import concat, rand
-import csv
+
+from birdclef.utils import get_spark
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -14,9 +17,7 @@ def main():
     args = vars(args)
 
     spark = get_spark()
-    df = spark.read.parquet(
-        args["input"]
-    )
+    df = spark.read.parquet(args["input"])
 
     explode_preds = df.select(
         "species",
@@ -28,7 +29,9 @@ def main():
         F.explode(df.predictions).alias("col"),
     )
     explode_preds = explode_preds.select(
-        concat(explode_preds.track_name, explode_preds.start_time, explode_preds.track_type).alias("track_id"),
+        concat(
+            explode_preds.track_name, explode_preds.start_time, explode_preds.track_type
+        ).alias("track_id"),
         "species",
         "embedding",
         explode_preds.col.label.alias("label"),
@@ -54,11 +57,12 @@ def main():
 
     x, y = data.loc[:, data.columns != "species"], data["species"]
 
-    model = pickle.load(open(f"../models/{args['model']}.pkl", 'rb'))
+    model = pickle.load(open(f"../models/{args['model']}.pkl", "rb"))
 
     result = model.predict_proba(x)
 
     print(result)
+
 
 if __name__ == "__main__":
     main()
