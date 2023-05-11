@@ -41,13 +41,13 @@ class ConsolidateEmbeddings(luigi.Task):
             parallelism=self.parallelism,
             partitions=self.partitions,
         )
-        # yield GSUtilRsyncTask(
-        #     input_path=f"{self.input_path}/{self.output_name}",
-        #     output_path=f"{self.remote_path}/{self.output_name}",
-        #     is_dir=True,
-        #     touch_success=False,
-        #     dynamic_requires=[emb],
-        # )
+        yield GSUtilRsyncTask(
+            input_path=f"{self.input_path}/{self.output_name}",
+            output_path=f"{self.remote_path}/{self.output_name}",
+            is_dir=True,
+            touch_success=False,
+            dynamic_requires=[emb],
+        )
 
 
 if __name__ == "__main__":
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--output-name", type=str, required=True)
     parser.add_argument("--parallelism", type=int, default=os.cpu_count())
-    parser.add_argument("--partitions", type=int, default=32)
+    parser.add_argument("--partitions", type=int, default=64)
     args = parser.parse_args()
 
     luigi.build(
