@@ -295,7 +295,7 @@ llvmlite==0.39.1
     #   pynndescent
 lockfile==0.12.2
     # via python-daemon
-luigi @ git+https://github.com/dsgt-birdclef/luigi.git@docker-host-options
+luigi==3.3.0
     # via birdclef-2023
 markdown==3.4.1
     # via tensorboard
