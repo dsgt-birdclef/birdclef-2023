@@ -36,7 +36,7 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
         if torch.cuda.is_available()
         else {}
     )
-    # We don't need this, and cause more issus than it solves
+    # We don't need this, and cause more issues than it solves
     mount_tmp = False
 
     @property
