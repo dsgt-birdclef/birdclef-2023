@@ -24,7 +24,6 @@ def get_worker_indices(total_rows):
 
 class AudioPCMDataSet(IterableDataset):
     """Iterate over a list of files and return the audio data and track name.
-
     This is effectively a wrapper around librosa functionality. We can use in a data module
     to reshape the data into a form we expect, by passing transforms into this dataset. For
     example, we use a ToBirdNETEmbedding transform to convert the audio data into the
