@@ -163,12 +163,24 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
     ):
         for path in tqdm.tqdm(paths):
             y, sr = librosa.load(path.as_posix(), sr=sr, mono=True)
-            X = slice_seconds(y, sr, seconds=3, step=3)
+
+            # we add in functionality from our notebook, so that we can process
+            # audio in 5 second chunks
+            X = slice_seconds(y, sr, seconds=3, step=1)
+            # drop every 4th/5th index, so we're not processing more than we need to
+            # first pad the resulting slices by 2
+            X = np.pad(X, ((0, 2), (0, 0)))
+            # then reshape it
+            X = X.reshape(-1, 5, X.shape[-1])
+            # now only take the 0th and 2nd indices
+            X = X[:, [0, 2], :].reshape(-1, X.shape[-1])
+
             pred = prediction_func(X)[0]
             emb = embedding_func(X)[0]
-            pred_sigmoid = 1 / (1 + np.exp(-pred))
 
+            pred_sigmoid = 1 / (1 + np.exp(-pred))
             indices = birdnet.rank_indices(pred_sigmoid)
+
             for i in range(pred_sigmoid.shape[0]):
                 predictions = [
                     {
@@ -188,6 +200,11 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
                         sorted(predictions, key=lambda row: -row["probability"])
                     )
                 ]
+                # the start time is complicated, every odd index is an interval
+                # of 5 and every even index is 2 after the odd index
+                start_time = (i // 2) * 5
+                if i % 2 == 1:
+                    start_time += 2
                 yield Row(
                     **{
                         "species": path.parts[-2],
@@ -201,7 +218,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
                         "embedding": emb[i].astype(float).tolist(),
                         "prediction_vec": pred[i].astype(float).tolist(),
                         "predictions": predictions,
-                        "start_time": i * 3,
+                        "start_time": start_time,
                         "energy": float(np.sum(X[i] ** 2)),
                     }
                 )
