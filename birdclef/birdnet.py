@@ -70,7 +70,8 @@ def load_labels(birdnet_root: str):
         path = Path(birdnet_root) / "labels.txt"
     else:
         path = Path(birdnet_root) / "checkpoints/V2.2/BirdNET_GLOBAL_3K_V2.2_Labels.txt"
-    labels = Path(path).read_text().splitlines()
+    # ensure this is read as unicode
+    labels = Path(path).read_text(encoding="utf-8").strip().split("\n")
     return labels
 
 
