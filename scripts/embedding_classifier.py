@@ -2,19 +2,22 @@ import argparse
 import csv
 import pickle
 from pathlib import Path
-import tqdm
-import librosa
 
+import librosa
 import pyspark.sql.functions as F
+import tqdm
 from pyspark.sql.functions import concat, rand
 
 from birdclef import birdnet
-from birdclef.utils import get_spark
 from birdclef.data.utils import slice_seconds
+from birdclef.utils import get_spark
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--birdnet_path", default="data/models/birdnet-analyzer-pruned", type=str)
+    parser.add_argument(
+        "--birdnet_path", default="data/models/birdnet-analyzer-pruned", type=str
+    )
     parser.add_argument("--input", "--i", required=True, type=str)
     parser.add_argument("--birdclef_root", default="data/raw/birdclef-2023", type=str)
     parser.add_argument("--model", choices=["logistic_reg_3"], required=True, type=str)
@@ -22,26 +25,11 @@ def main():
     args, other_args = parser.parse_known_args()
     args = vars(args)
 
-    train_audio_root = Path(args["birdclef_root"]) / "train_audio"
-    species = sorted([p.name for p in train_audio_root.glob("*")])
-
-    for s in species:
-        species_root = train_audio_root / s
-        track_names = sorted(
-            ["/".join(p.parts[-2:]) for p in species_root.glob("*.ogg")]
-        )
-
-        for track_name in track_names:
-            # pad audio noise
-            
-
     repo_path = args["birdnet_path"]
     model = birdnet.load_model_from_repo(repo_path)
     prediction_func = birdnet.prediction_func(model)
     labels = birdnet.load_labels(repo_path)
     mapped_labels = birdnet.load_mapped_labels(repo_path)
-
-    
 
     rows = []
     paths = sorted(Path(args["input"]).glob(f"{self.track_stem}*"))
