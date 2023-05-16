@@ -315,6 +315,11 @@ def parse_args():
     parser.add_argument(
         "--workers", default=max(int(os.cpu_count() * 3 / 8), 1), type=int
     )
+    parser.add_argument(
+        "--scheduler-host",
+        type=str,
+        default="luigi.us-central1-a.c.birdclef-2023.internal",
+    )
     return parser.parse_args()
 
 
@@ -385,7 +390,7 @@ if __name__ == "__main__":
                 for (t, d) in batch
             ],
             workers=args.workers,
-            scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+            scheduler_host=args.scheduler_host,
             log_level="INFO",
             # get the full response so we can check for errors
             detailed_summary=True,
