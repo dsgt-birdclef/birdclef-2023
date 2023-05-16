@@ -12,7 +12,7 @@ resource "google_compute_instance" "luigi" {
   boot_disk {
     initialize_params {
       image = "ubuntu-os-cloud/ubuntu-2204-lts"
-      size  = 10
+      size  = 25
     }
   }
   network_interface {

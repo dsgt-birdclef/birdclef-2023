@@ -36,7 +36,10 @@ resource "google_compute_instance" "dev-vm" {
   // ignore changes to current status and cpu_platform
   lifecycle {
     ignore_changes = [
-      machine_type
+      machine_type,
+      boot_disk,
+      scheduling,
+      service_account,
     ]
   }
 }

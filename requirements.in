@@ -1,5 +1,5 @@
 -f https://download.pytorch.org/whl/cu116/torch_stable.html
--e file:./[dev,workflow,onnx]
+-e file:./[dev,workflow,onnx,tensorflow-opt]
 
 # notebooking, specific dependencies for windows
 pywin32; sys_platform == 'win32'

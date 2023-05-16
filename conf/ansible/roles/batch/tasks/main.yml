@@ -42,3 +42,5 @@
     requirements: requirements.txt
     chdir: /opt/birdclef-2023
     extra_args: "--ignore-installed"
+- name: install gcs connector
+  script: /opt/birdclef-2023/scripts/install_gcs_connector.sh

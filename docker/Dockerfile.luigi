@@ -1,6 +1,6 @@
 FROM python:3.10
 
-RUN pip install luigi[toml]==3.2.0 SQLAlchemy
+RUN pip install luigi[toml]==3.2.0 SQLAlchemy psycopg2
 
 ENV PORT=8032
 CMD luigid --port ${PORT}

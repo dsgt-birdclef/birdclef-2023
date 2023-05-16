@@ -12,14 +12,12 @@ from birdclef import birdnet
 from birdclef.utils import get_spark
 from birdclef.data.utils import slice_seconds
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--birdnet_path", default="data/models/birdnet-analyzer-pruned", type=str)
     parser.add_argument("--input", "--i", required=True, type=str)
     parser.add_argument("--birdclef_root", default="data/raw/birdclef-2023", type=str)
     parser.add_argument("--model", choices=["logistic_reg_3"], required=True, type=str)
-    
     parser.add_argument("--output", "--o", required=True, type=str)
     args, other_args = parser.parse_known_args()
     args = vars(args)

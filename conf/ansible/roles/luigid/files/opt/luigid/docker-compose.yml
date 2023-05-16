@@ -1,5 +1,23 @@
 version: "3.9"
+volumes:
+  db-data:
 services:
+  db:
+    image: postgres:latest
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=luigi
+      - POSTGRES_PASSWORD=luigi
+      - POSTGRES_DB=task_history
+    ports:
+      - 5432:5432
   luigi:
     restart: always
     image: us-central1-docker.pkg.dev/birdclef-2023/birdclef-2023/luigi:latest
@@ -10,6 +28,11 @@ services:
       - LUIGI_CONFIG_PATH=/app/luigi.cfg
     volumes:
       - ./:/app
+    logging:
+      driver: gcplogs
+    depends_on:
+      db:
+        condition: service_healthy
   oauth2-proxy:
     restart: always
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.4.0
@@ -29,3 +52,7 @@ services:
       - OAUTH2_PROXY_CLIENT_SECRET
       - OAUTH2_PROXY_COOKIE_SECRET
       - DOMAIN_NAME
+    logging:
+      driver: gcplogs
+    depends_on:
+      - luigi

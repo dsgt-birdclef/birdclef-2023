@@ -29,9 +29,13 @@ def load_model(path: str, model_attr: Optional[str] = "model") -> keras.Model:
 
 
 def load_model_from_repo(birdnet_root: str) -> keras.Model:
-    return load_model(
-        Path(birdnet_root) / "checkpoints/V2.2/BirdNET_GLOBAL_3K_V2.2_Model/"
-    )
+    # load our optimized model
+    if (Path(birdnet_root) / "model").exists():
+        return load_model(Path(birdnet_root) / "model", model_attr=None)
+    else:
+        return load_model(
+            Path(birdnet_root) / "checkpoints/V2.2/BirdNET_GLOBAL_3K_V2.2_Model/"
+        )
 
 
 def embedding_func(model: keras.Model):
@@ -61,8 +65,13 @@ def prediction_func(model: keras.Model):
 
 
 def load_labels(birdnet_root: str):
-    path = Path(birdnet_root) / "checkpoints/V2.2/BirdNET_GLOBAL_3K_V2.2_Labels.txt"
-    labels = Path(path).read_text().splitlines()
+    # we rename the labels when copying over the model in the optimized model
+    if (Path(birdnet_root) / "model").exists():
+        path = Path(birdnet_root) / "labels.txt"
+    else:
+        path = Path(birdnet_root) / "checkpoints/V2.2/BirdNET_GLOBAL_3K_V2.2_Labels.txt"
+    # ensure this is read as unicode
+    labels = Path(path).read_text(encoding="utf-8").strip().split("\n")
     return labels
 
 

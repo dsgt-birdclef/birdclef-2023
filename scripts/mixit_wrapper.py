@@ -1,4 +1,5 @@
 import argparse
+import shutil
 from pathlib import Path
 from subprocess import run
 
@@ -35,7 +36,10 @@ def main():
     cleanup_tmp()
     input_path = Path(args.input)
     tmp_input = f"/tmp/{input_path.name.split('.')[0]}.wav"
-    run(f"ffmpeg -y -i {input_path} {tmp_input}".split())
+    if input_path.suffix == ".wav":
+        shutil.copyfile(input_path, tmp_input)
+    else:
+        run(f"ffmpeg -y -i {input_path} {tmp_input}".split())
 
     model_dir = f"{args.model_dir}/{args.model_name}"
     output_name = Path(args.output).name.split(".")[0]
@@ -61,7 +65,8 @@ def main():
 
     # for each of the output files, copy them into the output directory
     output_path = Path(args.output).parent
-    output_path.mkdir(parents=True, exist_ok=True)
+    if not output_path.exists():
+        output_path.mkdir(parents=True)
     for p in Path("/tmp").glob(f"{output_name}_source*.wav"):
         if args.output_format == "ogg":
             output = output_path / p.name.replace("wav", "ogg")
