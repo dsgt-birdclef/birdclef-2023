@@ -385,7 +385,7 @@ if __name__ == "__main__":
                 for (t, d) in batch
             ],
             workers=args.workers,
-            # scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
+            scheduler_host="luigi.us-central1-a.c.birdclef-2023.internal",
             log_level="INFO",
             # get the full response so we can check for errors
             detailed_summary=True,
