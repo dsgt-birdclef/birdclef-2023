@@ -26,7 +26,10 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
             image="bird-mixit-gpu" if torch.cuda.is_available() else "bird-mixit"
         )
     )
-    container_options = {"user": f"{os.getuid()}:{os.getgid()}"}
+    # only set user if we're not on windows
+    container_options = {
+        "user": f"{os.getuid()}:{os.getgid()}" if os.name != "nt" else ""
+    }
     host_config_options = (
         {
             "device_requests": [
@@ -43,7 +46,12 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
     def staging_path(self):
         # a singleton variable that's set on the first call, hacky solution
         if not hasattr(self, "_staging_path"):
-            tmp_root = f"/run/user/{os.getuid()}/docker-mixit"
+            if os.name == "nt":
+                # windows doesn't have /run/user, so we need to use a different
+                # temporary directory
+                tmp_root = f"{os.environ['TEMP']}/docker-mixit"
+            else:
+                tmp_root = f"/run/user/{os.getuid()}/docker-mixit"
             if not Path(tmp_root).exists():
                 Path(tmp_root).mkdir(parents=True, exist_ok=True)
             self._staging_path = Path(tempfile.mkdtemp(prefix=tmp_root))
@@ -52,8 +60,9 @@ class MixitDockerTask(DockerTask, DynamicRequiresMixin):
             child = self._staging_path / path.parent.name
             child.mkdir(parents=True, exist_ok=True)
             # chown directory to current user
-            os.chown(self._staging_path, os.getuid(), os.getgid())
-            os.chown(child, os.getuid(), os.getgid())
+            if os.name != "nt":
+                os.chown(self._staging_path, os.getuid(), os.getgid())
+                os.chown(child, os.getuid(), os.getgid())
             return self._staging_path
         else:
             return self._staging_path

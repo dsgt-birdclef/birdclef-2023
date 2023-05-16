@@ -163,12 +163,17 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
     ):
         for path in tqdm.tqdm(paths):
             y, sr = librosa.load(path.as_posix(), sr=sr, mono=True)
-            X = slice_seconds(y, sr, seconds=3, step=3)
+
+            # we add in functionality from our notebook, so that we can process
+            # audio in 5 second chunks
+            X = slice_seconds(y, sr, seconds=3, step=1)
+
             pred = prediction_func(X)[0]
             emb = embedding_func(X)[0]
-            pred_sigmoid = 1 / (1 + np.exp(-pred))
 
-            indices = birdnet.rank_indices(pred_sigmoid)
+            pred_sigmoid = 1 / (1 + np.exp(-pred))
+            indices = birdnet.rank_indices(pred_sigmoid, k=3)
+
             for i in range(pred_sigmoid.shape[0]):
                 predictions = [
                     {
@@ -201,7 +206,7 @@ class ExtractEmbedding(luigi.Task, DynamicRequiresMixin):
                         "embedding": emb[i].astype(float).tolist(),
                         "prediction_vec": pred[i].astype(float).tolist(),
                         "predictions": predictions,
-                        "start_time": i * 3,
+                        "start_time": i,
                         "energy": float(np.sum(X[i] ** 2)),
                     }
                 )
@@ -264,7 +269,8 @@ class TrackWorkflow(luigi.Task):
         )
         deps = []
         for output in pad_noise:
-            wav_track_name = "/".join(output.path.split("/")[-2:])
+            p = Path(output.path)
+            wav_track_name = "/".join(p.parts[-2:])
             convert_mp3 = ToMP3Single(
                 input_path=f"{self.output_path}/audio",
                 output_path=f"{self.output_path}/audio",
@@ -314,6 +320,9 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+
+    # let's disable cuda for now
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     train_audio_root = Path(args.birdclef_root_path) / "train_audio"
     species = sorted([p.name for p in train_audio_root.glob("*")])
