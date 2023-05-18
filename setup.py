@@ -15,6 +15,7 @@ setuptools.setup(
         "networkx",
         "pyspark",
         "scikit-learn",
+        "scikit-optimize",
         "umap-learn",
         "pynndescent",
         "librosa",
@@ -25,6 +26,7 @@ setuptools.setup(
         "tensorflow",
         "torch",
         "pytorch-lightning",
+        "xgboost",
         'importlib-metadata>=0.12;python_version<"3.8"',
     ],
     extras_require={
