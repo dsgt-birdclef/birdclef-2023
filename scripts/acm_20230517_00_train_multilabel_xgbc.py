@@ -78,7 +78,7 @@ def main():
         XGBClassifier(tree_method="gpu_hist", eta=0.2, verbosity=1),
         {
             "max_depth": (3, 15, "uniform"),
-            "gamma": (0, 1, "uniform"),
+            "gamma": (0.0, 1.0, "uniform"),
             "min_child_weight": (1, 10, "uniform"),
         },
         n_iter=args.n_iter,
@@ -118,6 +118,10 @@ def main():
     pickle.dump(
         search.best_estimator_,
         Path(f"data/models/baseline/{prefix}.pkl").open("wb"),
+    )
+    pickle.dump(
+        mlb,
+        Path(f"data/models/baseline/{prefix}_mlb.pkl").open("wb"),
     )
 
 
