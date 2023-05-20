@@ -82,7 +82,7 @@ def main():
             "min_child_weight": (1, 10, "uniform"),
         },
         n_iter=args.n_iter,
-        scoring="f1_macro",
+        scoring="accuracy",
         verbose=4,
         cv=3,
     )
@@ -96,7 +96,9 @@ def main():
         train_x,
         train_y,
         sample_weight=(
-            class_weight.compute_sample_weight(class_weight="balanced", y=train_y)
+            class_weight.compute_sample_weight(
+                class_weight="balanced", y=mlb.inverse_transform(train_y)
+            )
             if args.weighted
             else None
         ),
