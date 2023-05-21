@@ -55,18 +55,14 @@ def main():
         type=int,
         default=20,
     )
-    parser.add_argument("--scoring", default="f1_macro")
+    # parser.add_argument("--scoring", default="precision_macro")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     print(args)
     spark = get_spark(cores=16, memory="2g")
-    df = spark.read.parquet("data/processed/birdclef-2023/train_postprocessed/v3")
-    df = (
-        df.withColumn("primary_label", F.col("metadata_species")[0])
-        .withColumn("species", F.concat("metadata_species", "predicted_species"))
-        .withColumn(
-            "species_count", F.count("*").over(Window.partitionBy("primary_label"))
-        )
+    df = spark.read.parquet("data/processed/birdclef-2023/train_postprocessed/v4")
+    df = df.withColumn(
+        "species_count", F.count("*").over(Window.partitionBy("primary_label"))
     )
     df.printSchema()
     df.show(n=5)
@@ -84,29 +80,38 @@ def main():
     def prepare_data(df, mlb):
         labels = mlb.transform(df.predicted_species)
         embeddings = np.stack(df.embedding.values)
+        next_embeddings = np.stack(df.next_embedding.values)
+        track_embeddings = np.stack(df.track_embedding.values)
+        embeddings = np.concatenate(
+            [embeddings, next_embeddings, track_embeddings], axis=1
+        )
         return embeddings, labels
 
     mlb = MultiLabelBinarizer()
-    mlb.fit(data.species)
+    mlb.fit(data.metadata_species)
     print("num labels", len(mlb.classes_))
 
     train_df, test_df = train_test_split(
-        data, test_size=0.3, stratify=data.primary_label
+        data, test_size=0.2, stratify=data.primary_label
     )
     train_x, train_y = prepare_data(train_df, mlb)
     test_x, test_y = prepare_data(test_df, mlb)
 
+    def scorer(estimator, X, y):
+        return average_precision_score(y, estimator.predict_proba(X), average="macro")
+
     search = BayesSearchCV(
-        XGBClassifier(tree_method="gpu_hist", eta=0.2, verbosity=1),
+        XGBClassifier(tree_method="gpu_hist", eta=0.1, verbosity=1),
         {
             "max_depth": (3, 15, "uniform"),
             "gamma": (0.0, 1.0, "uniform"),
-            "min_child_weight": (1, 10, "uniform"),
+            "min_child_weight": (1, 20, "uniform"),
         },
         n_iter=args.n_iter,
-        scoring=args.scoring,
+        scoring=scorer,
         verbose=4,
-        cv=3,
+        cv=[(slice(None), slice(None))],
+        refit=False,
     )
     # create a tqdm progress bar which is passed as a callback to search.fit
     bar = tqdm.tqdm(total=args.n_iter, desc="hyperparameter tuning")
@@ -127,15 +132,33 @@ def main():
         callback=bar_callback,
     )
 
-    model_eval(test_y, search.predict(test_x))
-    print(average_precision_score(test_y, search.predict_proba(test_x)))
-
     # print the best params
     print(search.best_params_)
 
     # display the scores as a dataframe
     results = pd.DataFrame(search.cv_results_)
     print(results)
+
+    # now let's train a model on the full dataset
+    X, y = prepare_data(data, mlb)
+    clf = XGBClassifier(**search.best_params_)
+    clf.fit(
+        X,
+        y,
+        sample_weight=(
+            class_weight.compute_sample_weight(
+                class_weight="balanced", y=data.primary_label
+            )
+            if args.weighted
+            else None
+        ),
+    )
+
+    model_eval(test_y, clf.predict(test_x))
+    print(
+        "average precision",
+        average_precision_score(test_y, clf.predict_proba(test_x)),
+    )
 
     if args.dry_run:
         print("dry running, not saving results")
@@ -144,7 +167,7 @@ def main():
     prefix = args.prefix
     results.to_csv(f"data/models/baseline_v2/{prefix}.csv")
     pickle.dump(
-        search.best_estimator_,
+        clf,
         Path(f"data/models/baseline_v2/{prefix}.pkl").open("wb"),
     )
     pickle.dump(
