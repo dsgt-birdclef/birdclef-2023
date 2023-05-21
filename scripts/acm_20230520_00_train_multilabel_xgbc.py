@@ -82,7 +82,7 @@ def main():
     spark.stop()
 
     def prepare_data(df, mlb):
-        labels = mlb.transform(df.species)
+        labels = mlb.transform(df.predicted_species)
         embeddings = np.stack(df.embedding.values)
         return embeddings, labels
 
@@ -149,7 +149,7 @@ def main():
     )
     pickle.dump(
         mlb,
-        Path(f"data/models/baseline/{prefix}_mlb.pkl").open("wb"),
+        Path(f"data/models/baseline_v2/{prefix}_mlb.pkl").open("wb"),
     )
 
 
