@@ -55,12 +55,12 @@ def main():
         type=int,
         default=20,
     )
-    parser.add_argument("--scoring", default="precision_macro")
+    parser.add_argument("--scoring", default="f1_macro")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     print(args)
     spark = get_spark(cores=16, memory="2g")
-    df = spark.read.parquet("data/processed/birdclef-2023/train_postprocessed/v2")
+    df = spark.read.parquet("data/processed/birdclef-2023/train_postprocessed/v3")
     df = (
         df.withColumn("primary_label", F.col("metadata_species")[0])
         .withColumn("species", F.concat("metadata_species", "predicted_species"))
@@ -81,13 +81,20 @@ def main():
     print(data.shape)
     spark.stop()
 
-    mlb = MultiLabelBinarizer()
-    labels = mlb.fit_transform(data.species)
-    embeddings = np.stack(data.embedding.values)
+    def prepare_data(df, mlb):
+        labels = mlb.transform(df.species)
+        embeddings = np.stack(df.embedding.values)
+        return embeddings, labels
 
-    train_x, test_x, train_y, test_y = train_test_split(
-        embeddings, labels, test_size=0.3, stratify=data.primary_label
+    mlb = MultiLabelBinarizer()
+    mlb.fit(data.species)
+    print("num labels", len(mlb.classes_))
+
+    train_df, test_df = train_test_split(
+        data, test_size=0.3, stratify=data.primary_label
     )
+    train_x, train_y = prepare_data(train_df, mlb)
+    test_x, test_y = prepare_data(test_df, mlb)
 
     search = BayesSearchCV(
         XGBClassifier(tree_method="gpu_hist", eta=0.2, verbosity=1),
@@ -112,7 +119,7 @@ def main():
         train_y,
         sample_weight=(
             class_weight.compute_sample_weight(
-                class_weight="balanced", y=mlb.inverse_transform(train_y)
+                class_weight="balanced", y=train_df.primary_label
             )
             if args.weighted
             else None
