@@ -103,15 +103,17 @@ def main():
     search = BayesSearchCV(
         XGBClassifier(tree_method="gpu_hist", eta=0.1, verbosity=1),
         {
-            "max_depth": (3, 15, "uniform"),
+            "max_depth": (3, 20, "uniform"),
             "gamma": (0.0, 1.0, "uniform"),
             "min_child_weight": (1, 20, "uniform"),
         },
         n_iter=args.n_iter,
         scoring=scorer,
         verbose=4,
-        cv=[(slice(None), slice(None))],
-        refit=False,
+        cv=zip(
+            [np.arange(0, int(len(train_x) * 0.7))],
+            [np.arange(int(len(train_x) * 0.7) + 1, len(train_x))],
+        ),
     )
     # create a tqdm progress bar which is passed as a callback to search.fit
     bar = tqdm.tqdm(total=args.n_iter, desc="hyperparameter tuning")
@@ -135,13 +137,19 @@ def main():
     # print the best params
     print(search.best_params_)
 
+    model_eval(test_y, search.predict(test_x))
+    print(
+        "average precision",
+        average_precision_score(test_y, search.predict_proba(test_x)),
+    )
+
     # display the scores as a dataframe
     results = pd.DataFrame(search.cv_results_)
     print(results)
 
     # now let's train a model on the full dataset
     X, y = prepare_data(data, mlb)
-    clf = XGBClassifier(**search.best_params_)
+    clf = XGBClassifier(tree_method="gpu_hist", eta=0.1, **search.best_params_)
     clf.fit(
         X,
         y,
@@ -153,16 +161,6 @@ def main():
             else None
         ),
     )
-
-    model_eval(test_y, clf.predict(test_x))
-    print(
-        "average precision",
-        average_precision_score(test_y, clf.predict_proba(test_x)),
-    )
-
-    if args.dry_run:
-        print("dry running, not saving results")
-        return
 
     prefix = args.prefix
     results.to_csv(f"data/models/baseline_v2/{prefix}.csv")
