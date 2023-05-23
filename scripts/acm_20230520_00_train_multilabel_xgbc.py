@@ -55,12 +55,11 @@ def main():
         type=int,
         default=20,
     )
-    # parser.add_argument("--scoring", default="precision_macro")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     print(args)
     spark = get_spark(cores=16, memory="2g")
-    df = spark.read.parquet("data/processed/birdclef-2023/train_postprocessed/v4")
+    df = spark.read.parquet("data/processed/birdclef-2023/train_postprocessed/v5")
     df = df.withColumn(
         "species_count", F.count("*").over(Window.partitionBy("primary_label"))
     )
