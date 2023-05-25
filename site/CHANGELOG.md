@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.9.0...site-v0.10.0) (2023-05-25)
+
+
+### Miscellaneous Chores
+
+* **site:** Synchronize undefined versions
+
 ## [0.9.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/site-v0.8.1...site-v0.9.0) (2023-04-04)
 
 

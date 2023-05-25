@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.9.0...app-v0.10.0) (2023-05-25)
+
+
+### Features
+
+* add notebook with example usage of training embeddings dataset ([b080a84](https://github.com/dsgt-birdclef/birdclef-2023/commit/b080a84ab2f761b27fea903847881c1d8515e60b))
+
+
+### Bug Fixes
+
+* enable gsutil sync on consolidate again ([3db22b1](https://github.com/dsgt-birdclef/birdclef-2023/commit/3db22b13d5d70d69373d3930c84f0cbe77e49afe))
+* minor cleanup of embedding script ([03b68d5](https://github.com/dsgt-birdclef/birdclef-2023/commit/03b68d5459256bbeb44109c5ab6f103af49b9fc0))
+* pre-commit linting ([67f17a5](https://github.com/dsgt-birdclef/birdclef-2023/commit/67f17a51dba157fe16836d0ae7d6c33cc08d7ea5))
+* Set submodules to use https instead of ssh ([aa731bd](https://github.com/dsgt-birdclef/birdclef-2023/commit/aa731bd2c8efc7a6ccb7e4af6c45ae133a1157a8))
+
 ## [0.9.0](https://github.com/dsgt-birdclef/birdclef-2023/compare/app-v0.8.1...app-v0.9.0) (2023-04-04)
 
 
