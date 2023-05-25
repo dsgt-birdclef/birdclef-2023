@@ -14,6 +14,7 @@ def get_spark(cores=8, memory="8g"):
         SparkSession.builder.config("spark.driver.memory", memory)
         .config("spark.driver.cores", cores)
         .config("spark.sql.execution.arrow.pyspark.enabled", "true")
+        .config("spark.driver.maxResultSize", "4g")
         .getOrCreate()
     )
 
